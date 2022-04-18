@@ -1,0 +1,3 @@
+rootProject.name = "LBFloatUniDemo"
+include ':app'
+include ':LBFloatUniBridging'
