@@ -265,7 +265,7 @@ public class FloatUniModule extends UniModule implements SettingProviderInterfac
         intercomService.hangup(masterNum,slaveNum,areaId,devRegType);
 
     }
-
+    @UniJSMethod(uiThread = false)
     @Override
     public void openLockCtrl(int num, int open) {
         if (!isConnect){
