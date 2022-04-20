@@ -62,7 +62,7 @@ public class FloatUniModule extends UniModule implements SettingProviderInterfac
 
 
     @UniJSMethod(uiThread = false)
-    public void initIPCManager(){
+    public void initIPCManager(UniJSCallback uniJsCallback){
         //传入上下文
         IpcManager.INSTANCE.init(mUniSDKInstance.getContext());
         //连接服务端，传入的是服务端的包名
@@ -73,6 +73,9 @@ public class FloatUniModule extends UniModule implements SettingProviderInterfac
                 Log.d(TAG, "initIPCManager:invoke: 服务链接成功！");
                 Toast.makeText(mUniSDKInstance.getContext(), "服务链接成功！", Toast.LENGTH_LONG).show();
                 initService();
+                JSONObject jsonObject = new JSONObject();
+                jsonObject.put("code",0);
+                uniJsCallback.invoke(jsonObject);
                 return null;
             }
         });
