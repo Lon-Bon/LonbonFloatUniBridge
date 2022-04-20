@@ -266,6 +266,16 @@ public class FloatUniModule extends UniModule implements SettingProviderInterfac
 
     }
 
+    @Override
+    public void openLockCtrl(int num, int open) {
+        if (!isConnect){
+            showToast();
+            return ;
+        }
+        intercomService.openLockCtrl(num,open);
+
+    }
+
 
     /*********************************************/
 

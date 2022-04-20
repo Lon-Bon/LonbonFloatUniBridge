@@ -96,4 +96,11 @@ public interface IntercomProviderInterface {
      */
     public void nativeHangup(int areaId , int masterNum ,int slaveNum ,int devRegType);
 
+    /**
+     * 开关电控锁
+     * @param num 电控锁序号
+     * @param open 开关 0关 1开
+     */
+    void openLockCtrl(int num , int open);
+
 }
