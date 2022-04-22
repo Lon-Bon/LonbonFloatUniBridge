@@ -405,7 +405,7 @@ public class FloatUniModule extends UniModule implements SettingProviderInterfac
 
 
     /**
-     * 指纹数据入库结果 回调
+     * 指纹采集和指纹特征值入库的结果通过此CallBack返回
      * @param uniJSCallback
      */
     @UniJSMethod(uiThread = false)
