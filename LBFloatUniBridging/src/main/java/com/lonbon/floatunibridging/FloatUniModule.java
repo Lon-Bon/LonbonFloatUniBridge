@@ -8,10 +8,10 @@ import com.google.gson.Gson;
 import com.lb.extend.common.CallbackData;
 import com.lb.extend.security.card.CardData;
 import com.lb.extend.security.card.SwingCardService;
+import com.lb.extend.security.fingerprint.FingerprintCompareResult;
+import com.lb.extend.security.fingerprint.FingerprintFeatureResult;
+import com.lb.extend.security.fingerprint.FingerprintLeftNumResult;
 import com.lb.extend.security.fingerprint.FingerprintService;
-import com.lb.extend.security.fingerprint.GetFingerprintFeatureLeftNumResult;
-import com.lb.extend.security.fingerprint.GetFingerprintFeatureResult;
-import com.lb.extend.security.fingerprint.GetGetCompareFingerResult;
 import com.lb.extend.security.intercom.DeviceInfo;
 import com.lb.extend.security.intercom.DoorContact;
 import com.lb.extend.security.intercom.IntercomService;
@@ -23,8 +23,6 @@ import com.zclever.ipc.core.IpcManager;
 import com.zclever.ipc.core.Result;
 
 import java.util.ArrayList;
-
-import javax.security.auth.callback.Callback;
 
 import io.dcloud.feature.uniapp.annotation.UniJSMethod;
 import io.dcloud.feature.uniapp.bridge.UniJSCallback;
@@ -351,7 +349,7 @@ public class FloatUniModule extends UniModule implements SettingProviderInterfac
             jsonObject.put("code",-1);
         }else {
             jsonObject.put("code",0);
-            fingerprintService.start();
+            fingerprintService.init();
         }
         uniJSCallback.invoke(jsonObject);
 
@@ -374,50 +372,58 @@ public class FloatUniModule extends UniModule implements SettingProviderInterfac
 
     @UniJSMethod(uiThread = true)
     @Override
-    public void fingerprintCollect(int id,UniJSCallback uniJSCallback) {
+    public void fingerprintCollect(String id,UniJSCallback uniJSCallback) {
         Log.d(TAG, "fingerprintCollect: ");
         JSONObject jsonObject = new JSONObject();
         if (!isConnect){
             showToast();
             jsonObject.put("code",-1);
         }else {
-            jsonObject.put("code",fingerprintService.fingerprintCollect(id));
+            jsonObject.put("code",0);
         }
+        fingerprintService.fingerprintCollect(id);
         uniJSCallback.invoke(jsonObject);
 
     }
 
     @UniJSMethod(uiThread = true)
     @Override
-    public void fingerprintFeatureInput(int id, String feature,UniJSCallback uniJSCallback) {
+    public void fingerprintFeatureInput(String id, String feature,UniJSCallback uniJSCallback) {
         Log.d(TAG, "fingerprintFeatureInput: ");
         JSONObject jsonObject = new JSONObject();
         if (!isConnect){
             showToast();
             jsonObject.put("code",-1);
         }else {
-            jsonObject.put("code",fingerprintService.fingerprintFeatureInput(id,feature));
+            jsonObject.put("code",0);
         }
+        fingerprintService.fingerprintFeatureInput(id,feature);
         uniJSCallback.invoke(jsonObject);
 
     }
 
     @UniJSMethod(uiThread = false)
     @Override
-    public void setGetFingerprintFeatureCallBack(UniJSCallback uniJSCallback) {
+    public void setFingerprintFeatureCallBack(UniJSCallback uniJSCallback) {
         if (!isConnect){
             showToast();
             return ;
         }
         Log.d(TAG, "setGetFingerprintFeatureCallBack: ");
-        fingerprintService.setGetFingerprintFeatureCallBack(new Result<CallbackData<GetFingerprintFeatureResult>>() {
+        fingerprintService.setFingerprintFeatureCallBack(new Result<CallbackData<FingerprintFeatureResult>>() {
             @Override
-            public void onData(CallbackData<GetFingerprintFeatureResult> callbackData) {
+            public void onData(CallbackData<FingerprintFeatureResult> result) {
                 JSONObject jsonObject = new JSONObject();
-                jsonObject.put("code",String.valueOf(callbackData.getCode()));
-                jsonObject.put("msg",callbackData.getMsg());
-                jsonObject.put("id",String.valueOf(callbackData.getData().getId()));
-                jsonObject.put("feature",callbackData.getData().getFeature());
+                jsonObject.put("code",String.valueOf(result.getCode()));
+                jsonObject.put("msg",result.getMsg());
+                String id = "";
+                String feature = "";
+                if (result.getData() != null){
+                    id = result.getData().getId();
+                    feature = result.getData().getFeature();
+                }
+                jsonObject.put("id",id);
+                jsonObject.put("feature",feature);
                 uniJSCallback.invokeAndKeepAlive(jsonObject);
             }
         });
@@ -425,18 +431,28 @@ public class FloatUniModule extends UniModule implements SettingProviderInterfac
 
     @UniJSMethod(uiThread = false)
     @Override
-    public void setGetFingerprintFeatureLeftNumCallBack(UniJSCallback uniJSCallback) {
+    public void setFingerprintLeftNumCallBack(UniJSCallback uniJSCallback) {
         if (!isConnect){
             showToast();
             return ;
         }
         Log.d(TAG, "setGetFingerprintFeatureLeftNumCallBack: ");
-        fingerprintService.setGetFingerprintFeatureLeftNumCallBack(new Result<GetFingerprintFeatureLeftNumResult>() {
+        fingerprintService.setFingerprintLeftNumCallBack(new Result<CallbackData<FingerprintLeftNumResult>>() {
             @Override
-            public void onData(GetFingerprintFeatureLeftNumResult result) {
+            public void onData(CallbackData<FingerprintLeftNumResult> result) {
                 JSONObject jsonObject = new JSONObject();
-                jsonObject.put("leftCounts",String.valueOf(result.getLeftCounts()));
-                jsonObject.put("fingerprintBase64Str",result.getFingerprintBase64Str());
+                jsonObject.put("code",String.valueOf(result.getCode()));
+                jsonObject.put("msg",result.getMsg());
+
+                String leftCounts = "";
+                String fingerprintBase64Str = "";
+                if (result.getData() != null){
+                    leftCounts = String.valueOf(result.getData().getLeftCounts());
+                    fingerprintBase64Str = result.getData().getFingerprintBase64Str();
+                }
+                jsonObject.put("leftCounts",leftCounts);
+                jsonObject.put("fingerprintBase64Str",fingerprintBase64Str);
+
                 uniJSCallback.invokeAndKeepAlive(jsonObject);
             }
         });
@@ -444,19 +460,30 @@ public class FloatUniModule extends UniModule implements SettingProviderInterfac
 
     @UniJSMethod(uiThread = false)
     @Override
-    public void setGetCompareFingerprintCallBack(UniJSCallback uniJSCallback) {
+    public void setFingerprintCompareCallBack(UniJSCallback uniJSCallback) {
         if (!isConnect){
             showToast();
             return ;
         }
         Log.d(TAG, "setGetCompareFingerprintCallBack: ");
-        fingerprintService.setGetCompareFingerprintCallBack(new Result<GetGetCompareFingerResult>() {
+        fingerprintService.setFingerprintCompareCallBack(new Result<CallbackData<FingerprintCompareResult>>() {
             @Override
-            public void onData(GetGetCompareFingerResult result) {
+            public void onData(CallbackData<FingerprintCompareResult> result) {
                 JSONObject jsonObject = new JSONObject();
-                jsonObject.put("id",String.valueOf(result.getId()));
-                jsonObject.put("feature",result.getFeature());
-                jsonObject.put("fingerprintBase64Str",result.getFingerprintBase64Str());
+                jsonObject.put("code",String.valueOf(result.getCode()));
+                jsonObject.put("msg",result.getMsg());
+
+                String id = "";
+                String feature = "";
+                String fingerprintBase64Str = "";
+                if (result.getData() != null){
+                    id = result.getData().getId();
+                    feature = result.getData().getFeature();
+                    fingerprintBase64Str = result.getData().getFingerprintBase64Str();
+                }
+                jsonObject.put("id",id);
+                jsonObject.put("feature",feature);
+                jsonObject.put("fingerprintBase64Str",fingerprintBase64Str);
                 uniJSCallback.invokeAndKeepAlive(jsonObject);
             }
         });

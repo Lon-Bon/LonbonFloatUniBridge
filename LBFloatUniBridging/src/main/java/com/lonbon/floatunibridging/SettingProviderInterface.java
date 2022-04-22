@@ -57,7 +57,7 @@ public interface SettingProviderInterface {
      * @return 0：调用成功，其它值失败。指纹id和采集到的特征值
      * 通过setGetFingerprintFeatureCallBack设置的回调返回
      */
-    void fingerprintCollect(int id,UniJSCallback uniJSCallback);
+    void fingerprintCollect(String id,UniJSCallback uniJSCallback);
 
     /**
      * 指纹特征值入库（同步方法）
@@ -66,7 +66,7 @@ public interface SettingProviderInterface {
      * @return 0：调用成功，其它值失败。
      * 指纹id的入库的特征值通过setGetFingerprintFeatureCallBack设置的回调返回
      */
-    void fingerprintFeatureInput(int id,String feature,UniJSCallback uniJSCallback);
+    void fingerprintFeatureInput(String id,String feature,UniJSCallback uniJSCallback);
 
     /**
      * 指纹id和特征值的回调，指纹采集和指纹特征值入库的结果通过此CallBack返回
@@ -75,7 +75,7 @@ public interface SettingProviderInterface {
      * 如果失败，则通过CallbackData的code来判断失败类型，CallbackData的msg会写明失败原因。
      * @param uniJSCallback
      */
-    void setGetFingerprintFeatureCallBack(UniJSCallback uniJSCallback);
+    void setFingerprintFeatureCallBack(UniJSCallback uniJSCallback);
 
     /**
      * 指纹采集过程回调，每一枚指纹采集完成都会回调，leftCounts为0是则代表全部指纹采集完成
@@ -84,7 +84,7 @@ public interface SettingProviderInterface {
      * 如果失败，则通过CallbackData的code来判断失败类型，CallbackData的msg会写明失败原因。（失败用不到）
      * @param uniJSCallback
      */
-    void setGetFingerprintFeatureLeftNumCallBack(UniJSCallback uniJSCallback);
+    void setFingerprintLeftNumCallBack(UniJSCallback uniJSCallback);
 
     /**
      * 指纹比对回调
@@ -93,7 +93,7 @@ public interface SettingProviderInterface {
      * 如果失败，则通过CallbackData的code来判断失败类型，CallbackData的msg会写明失败原因。
      * @param uniJSCallback
      */
-    void setGetCompareFingerprintCallBack(UniJSCallback uniJSCallback);
+    void setFingerprintCompareCallBack(UniJSCallback uniJSCallback);
 
 
     /***************************************************************************/
