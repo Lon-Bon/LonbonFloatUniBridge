@@ -97,7 +97,7 @@ public interface IntercomProviderInterface {
     public void nativeHangup(int areaId , int masterNum ,int slaveNum ,int devRegType);
 
     /**
-     * 开关电控锁
+     * 开关电控锁，开关必须成对出现，开灯后，必须关掉对应的颜色才能再开灯设置其他颜色
      * @param num 电控锁序号
      * @param open 开关 0关 1开
      */
