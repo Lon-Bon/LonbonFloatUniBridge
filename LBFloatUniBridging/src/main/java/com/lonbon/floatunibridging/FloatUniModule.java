@@ -366,6 +366,7 @@ public class FloatUniModule extends UniModule implements SettingProviderInterfac
         }else {
             jsonObject.put("code",0);
             fingerprintService.stop();
+            fingerprintService.destroy();
         }
         uniJSCallback.invoke(jsonObject);
     }
@@ -402,6 +403,11 @@ public class FloatUniModule extends UniModule implements SettingProviderInterfac
 
     }
 
+
+    /**
+     * 指纹数据入库结果 回调
+     * @param uniJSCallback
+     */
     @UniJSMethod(uiThread = false)
     @Override
     public void setFingerprintFeatureCallBack(UniJSCallback uniJSCallback) {
@@ -429,6 +435,10 @@ public class FloatUniModule extends UniModule implements SettingProviderInterfac
         });
     }
 
+    /**
+     * 采集指纹，以及结果回调
+     * @param uniJSCallback
+     */
     @UniJSMethod(uiThread = false)
     @Override
     public void setFingerprintLeftNumCallBack(UniJSCallback uniJSCallback) {
@@ -458,6 +468,10 @@ public class FloatUniModule extends UniModule implements SettingProviderInterfac
         });
     }
 
+    /**
+     * 指纹比对以及结果回调
+     * @param uniJSCallback
+     */
     @UniJSMethod(uiThread = false)
     @Override
     public void setFingerprintCompareCallBack(UniJSCallback uniJSCallback) {
@@ -466,6 +480,7 @@ public class FloatUniModule extends UniModule implements SettingProviderInterfac
             return ;
         }
         Log.d(TAG, "setGetCompareFingerprintCallBack: ");
+        fingerprintService.fingerprintRecognition();
         fingerprintService.setFingerprintCompareCallBack(new Result<CallbackData<FingerprintCompareResult>>() {
             @Override
             public void onData(CallbackData<FingerprintCompareResult> result) {
