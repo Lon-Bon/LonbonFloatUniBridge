@@ -3,6 +3,7 @@ package com.lonbon.floatunibridging;
 import android.util.Log;
 import android.widget.Toast;
 
+import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONObject;
 import com.google.gson.Gson;
 import com.lb.extend.common.CallbackData;
@@ -164,7 +165,7 @@ public class FloatUniModule extends UniModule implements SettingProviderInterfac
             public void onData(ArrayList<DeviceInfo> deviceInfos) {
                 String gsonString = new Gson().toJson(deviceInfos);
                 Log.d(TAG, "onData: "+gsonString);
-                uniJsCallback.invokeAndKeepAlive(gsonString);
+                uniJsCallback.invokeAndKeepAlive(JSON.parseObject(gsonString));
             }
         });
     }
@@ -180,18 +181,9 @@ public class FloatUniModule extends UniModule implements SettingProviderInterfac
         intercomService.updateDeviceTalkState(new Result<DeviceInfo>() {
             @Override
             public void onData(DeviceInfo deviceInfo) {
-                JSONObject jsonObject = new JSONObject();
-                jsonObject.put("areaID",deviceInfo.getAreaID());
-                jsonObject.put("masterNum",deviceInfo.getMasterNum());
-                jsonObject.put("slaveNum",deviceInfo.getSlaveNum());
-                jsonObject.put("childNum",deviceInfo.getChildNum());
-                jsonObject.put("devRegType",deviceInfo.getDevRegType());
-                jsonObject.put("ip",deviceInfo.getIp());
-                jsonObject.put("description",deviceInfo.getDescription());
-                jsonObject.put("talkState",deviceInfo.getTalkState());
-                jsonObject.put("door1",deviceInfo.getDoorState().size() >= 1);
-                jsonObject.put("door2",deviceInfo.getDoorState().size() >= 2);
-                uniJsCallback.invokeAndKeepAlive(jsonObject);
+                String gsonString = new Gson().toJson(deviceInfo);
+                Log.d(TAG, "onData: "+gsonString);
+                uniJsCallback.invokeAndKeepAlive(JSON.parseObject(gsonString));
             }
         });
     }
