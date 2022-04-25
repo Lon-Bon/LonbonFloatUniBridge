@@ -165,7 +165,7 @@ public class FloatUniModule extends UniModule implements SettingProviderInterfac
             public void onData(ArrayList<DeviceInfo> deviceInfos) {
                 String gsonString = new Gson().toJson(deviceInfos);
                 Log.d(TAG, "onData: "+gsonString);
-                uniJsCallback.invokeAndKeepAlive(JSON.parseObject(gsonString));
+                uniJsCallback.invokeAndKeepAlive(gsonString);
             }
         });
     }
@@ -183,7 +183,7 @@ public class FloatUniModule extends UniModule implements SettingProviderInterfac
             public void onData(DeviceInfo deviceInfo) {
                 String gsonString = new Gson().toJson(deviceInfo);
                 Log.d(TAG, "onData: "+gsonString);
-                uniJsCallback.invokeAndKeepAlive(JSON.parseObject(gsonString));
+                uniJsCallback.invokeAndKeepAlive(gsonString);
             }
         });
     }
