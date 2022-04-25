@@ -16,6 +16,7 @@ import com.lb.extend.security.fingerprint.FingerprintService;
 import com.lb.extend.security.intercom.DeviceInfo;
 import com.lb.extend.security.intercom.DoorContact;
 import com.lb.extend.security.intercom.IntercomService;
+import com.lb.extend.security.intercom.LocalDeviceInfo;
 import com.lb.extend.security.setting.SystemSettingService;
 import com.lb.extend.security.temperature.TemperatureData;
 import com.lb.extend.security.temperature.TemperatureMeasurementService;
@@ -263,6 +264,24 @@ public class FloatUniModule extends UniModule implements SettingProviderInterfac
             return ;
         }
         intercomService.openLockCtrl(num,open);
+
+    }
+
+    @UniJSMethod(uiThread = false)
+    @Override
+    public void getDeviceInfo(UniJSCallback uniJsCallback) {
+        if (!isConnect){
+            showToast();
+            return ;
+        }
+        intercomService.getCurrentDeviceInfo(new Result<LocalDeviceInfo>() {
+            @Override
+            public void onData(LocalDeviceInfo localDeviceInfo) {
+                String gsonString = new Gson().toJson(localDeviceInfo);
+                Log.d(TAG, "onData: "+gsonString);
+                uniJsCallback.invoke(gsonString);
+            }
+        });
 
     }
 

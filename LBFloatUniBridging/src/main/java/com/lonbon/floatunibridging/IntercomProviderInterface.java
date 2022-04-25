@@ -103,4 +103,10 @@ public interface IntercomProviderInterface {
      */
     void openLockCtrl(int num , int open);
 
+    /**
+     * 获取本机设备的
+     * @param uniJsCallback
+     */
+    void getDeviceInfo(UniJSCallback uniJsCallback);
+
 }
