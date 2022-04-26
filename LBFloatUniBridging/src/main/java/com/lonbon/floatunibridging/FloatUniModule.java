@@ -17,6 +17,7 @@ import com.lb.extend.security.intercom.DeviceInfo;
 import com.lb.extend.security.intercom.DoorContact;
 import com.lb.extend.security.intercom.IntercomService;
 import com.lb.extend.security.intercom.LocalDeviceInfo;
+import com.lb.extend.security.intercom.TalkEvent;
 import com.lb.extend.security.setting.SystemSettingService;
 import com.lb.extend.security.temperature.TemperatureData;
 import com.lb.extend.security.temperature.TemperatureMeasurementService;
@@ -283,6 +284,26 @@ public class FloatUniModule extends UniModule implements SettingProviderInterfac
             }
         });
 
+    }
+
+    @UniJSMethod(uiThread = false)
+    @Override
+    public void onTalkEventListener(UniJSCallback uniJsCallback) {
+        if (!isConnect){
+            showToast();
+            return ;
+        }
+        intercomService.talkEventCallback(new Result<TalkEvent>() {
+            @Override
+            public void onData(TalkEvent talkEvent) {
+                Log.d(TAG, "onData: "+talkEvent.getEventID());
+                String gsonString = new Gson().toJson(talkEvent.getDeviceInfo());
+                JSONObject jsonObject = new JSONObject();
+                jsonObject.put("eventId",String.valueOf(talkEvent.getEventID()));
+                jsonObject.put("device",gsonString);
+                uniJsCallback.invokeAndKeepAlive(jsonObject);
+            }
+        });
     }
 
 

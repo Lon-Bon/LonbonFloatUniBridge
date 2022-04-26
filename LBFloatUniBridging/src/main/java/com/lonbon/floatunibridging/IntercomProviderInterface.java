@@ -109,4 +109,11 @@ public interface IntercomProviderInterface {
      */
     void getDeviceInfo(UniJSCallback uniJsCallback);
 
+    /**
+     * 对讲事件监听
+     * @param uniJsCallback
+     */
+    void onTalkEventListener(UniJSCallback uniJsCallback);
+
+
 }
