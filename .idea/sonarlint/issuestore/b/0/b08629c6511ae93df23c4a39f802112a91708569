@@ -1,0 +1,18 @@
+
+h	java:S1164"NRename this field "TAG" to match the regular expression '^[a-z][a-zA-Z0-9]*$'.(®¢úøùÿÿÿÿ
+<
+java:S11704"!Make this final field static too.(®¢úøùÿÿÿÿ
+u
+java:S14509"_Remove the "systemSetService" field and declare it as a local variable in the relevant methods.(ÁžüÒ
+J
+java:S10689"4Remove this unused "systemSetService" private field.(ÁžüÒ
+_
+java:S1192ì"HDefine a constant instead of duplicating this literal "value: " 5 times.(êøÈ
+g
+java:S1192ä"KDefine a constant instead of duplicating this literal "setValue: " 5 times.(½Í´’ùÿÿÿÿ
+b
+java:S1192ï"FDefine a constant instead of duplicating this literal "value" 5 times.(þ—ÄÐøÿÿÿÿ
+e
+java:S1192©"IDefine a constant instead of duplicating this literal "onData: " 4 times.(º»…Ûûÿÿÿÿ
+J
+java:S1604F"(Make this anonymous inner class a lambda(Ìô¼Èúÿÿÿÿ8Ü•þ§†0

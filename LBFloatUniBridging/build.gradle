@@ -4,7 +4,6 @@ plugins {
 }
 group = 'com.lonbon.floatunibridging'
 version = '1.0'
-
 android {
     compileSdkVersion rootProject.ext.compileSdkVersion
     buildToolsVersion rootProject.ext.buildToolsVersion
