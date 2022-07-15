@@ -2,6 +2,10 @@ package com.lonbon.floatunibridging;
 
 import android.util.Log;
 
+import com.lb.extend.security.intercom.DeviceInfo;
+import com.lb.extend.security.intercom.LocalDeviceInfo;
+import com.zclever.ipc.core.Result;
+
 import io.dcloud.feature.uniapp.bridge.UniJSCallback;
 
 /**
@@ -45,12 +49,15 @@ public interface IntercomProviderInterface {
     void onDoorContactValue(UniJSCallback uniJsCallback);
 
     /**
-     * 设备终端管理接口
-     * @param areaId
-     * @param masterNum
-     * @param slaveNum
-     * @param devRegType
-     * @param uniJsCallback
+     * 查询设备列表接口（带描述信息）
+     * 主机用：用于查询设备在线列表进行UI显示
+     * 仅传区号，其他参数传0，则为查询区号下的主机列表 传区号、主机号、注册类型，分机号传0，
+     * 则为查询该区该主机下某类型的分机列表
+     * @param areaId 区号
+     * @param masterNum 主机号
+     * @param slaveNum 分机号
+     * @param devRegType 注册类型
+     * @param uniJsCallback 返回该areaId下的在线设备列表
      */
     void asyncGetDeviceListInfo(int areaId , int masterNum ,int slaveNum ,int devRegType, UniJSCallback uniJsCallback);
 
@@ -97,23 +104,58 @@ public interface IntercomProviderInterface {
     public void nativeHangup(int areaId , int masterNum ,int slaveNum ,int devRegType);
 
     /**
-     * 开关电控锁，开关必须成对出现，开灯后，必须关掉对应的颜色才能再开灯设置其他颜色
+     * 开关电控锁
+     *
      * @param num 电控锁序号
      * @param open 开关 0关 1开
      */
-    void openLockCtrl(int num , int open);
+    public void  openLockCtrl(int num, int open);
 
     /**
-     * 获取本机设备的
-     * @param uniJsCallback
+     * 获取当前设备信息（包含设备编号）
+     *
+     * @param uniJsCallback 设备信息
      */
-    void getDeviceInfo(UniJSCallback uniJsCallback);
+    public void getCurrentDeviceInfo(UniJSCallback uniJsCallback);
 
     /**
-     * 对讲事件监听
-     * @param uniJsCallback
+     * 设备对讲事件回调接口
+     *
+     * 回调当前设备对讲事件
+     * @param uniJsCallback 返回状态变化的设备
      */
-    void onTalkEventListener(UniJSCallback uniJsCallback);
+    public void talkEventCallback(UniJSCallback uniJsCallback);
 
+    /**
+     * 设备在线回调接口
+     *
+     * @param uniJsCallback 返回状态变为在线的设备
+     */
+    public void onDeviceOnLine(UniJSCallback uniJsCallback);
+
+    /**
+     * 设备离线回调接口
+     *
+     * @param uniJsCallback 返回态变为离线的设备
+     */
+    public void onDeviceOffLine(UniJSCallback uniJsCallback);
+
+    /**
+     * 监听转对讲
+     *
+     */
+    public void listenToTalk();
+
+    /**
+     * 设置视频隐藏
+     *
+     * @param hide 隐藏视频 true隐藏 false显示
+     */
+    public void hideTalkView(Boolean hide);
+
+    /**
+     * 一键呼叫
+     */
+    public void oneKeyCall();
 
 }

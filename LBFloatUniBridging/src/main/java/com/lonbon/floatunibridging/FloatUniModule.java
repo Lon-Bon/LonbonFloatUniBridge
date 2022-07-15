@@ -3,7 +3,6 @@ package com.lonbon.floatunibridging;
 import android.util.Log;
 import android.widget.Toast;
 
-import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONObject;
 import com.google.gson.Gson;
 import com.lb.extend.common.CallbackData;
@@ -26,6 +25,8 @@ import com.zclever.ipc.core.IpcManager;
 import com.zclever.ipc.core.Result;
 
 import java.util.ArrayList;
+
+import javax.security.auth.callback.Callback;
 
 import io.dcloud.feature.uniapp.annotation.UniJSMethod;
 import io.dcloud.feature.uniapp.bridge.UniJSCallback;
@@ -63,7 +64,7 @@ public class FloatUniModule extends UniModule implements SettingProviderInterfac
 
 
     @UniJSMethod(uiThread = false)
-    public void initIPCManager(UniJSCallback uniJsCallback){
+    public void initIPCManager(){
         //传入上下文
         IpcManager.INSTANCE.init(mUniSDKInstance.getContext());
         //连接服务端，传入的是服务端的包名
@@ -74,9 +75,6 @@ public class FloatUniModule extends UniModule implements SettingProviderInterfac
                 Log.d(TAG, "initIPCManager:invoke: 服务链接成功！");
                 Toast.makeText(mUniSDKInstance.getContext(), "服务链接成功！", Toast.LENGTH_LONG).show();
                 initService();
-                JSONObject jsonObject = new JSONObject();
-                jsonObject.put("code",0);
-                uniJsCallback.invoke(jsonObject);
                 return null;
             }
         });
@@ -183,9 +181,18 @@ public class FloatUniModule extends UniModule implements SettingProviderInterfac
         intercomService.updateDeviceTalkState(new Result<DeviceInfo>() {
             @Override
             public void onData(DeviceInfo deviceInfo) {
-                String gsonString = new Gson().toJson(deviceInfo);
-                Log.d(TAG, "onData: "+gsonString);
-                uniJsCallback.invokeAndKeepAlive(gsonString);
+                JSONObject jsonObject = new JSONObject();
+                jsonObject.put("areaID",deviceInfo.getAreaID());
+                jsonObject.put("masterNum",deviceInfo.getMasterNum());
+                jsonObject.put("slaveNum",deviceInfo.getSlaveNum());
+                jsonObject.put("childNum",deviceInfo.getChildNum());
+                jsonObject.put("devRegType",deviceInfo.getDevRegType());
+                jsonObject.put("ip",deviceInfo.getIp());
+                jsonObject.put("description",deviceInfo.getDescription());
+                jsonObject.put("talkState",deviceInfo.getTalkState());
+                jsonObject.put("door1",deviceInfo.getDoorState().size() >= 1);
+                jsonObject.put("door2",deviceInfo.getDoorState().size() >= 2);
+                uniJsCallback.invokeAndKeepAlive(jsonObject);
             }
         });
     }
@@ -257,7 +264,7 @@ public class FloatUniModule extends UniModule implements SettingProviderInterfac
         intercomService.hangup(masterNum,slaveNum,areaId,devRegType);
 
     }
-    @UniJSMethod(uiThread = false)
+    @UniJSMethod(uiThread = true)
     @Override
     public void openLockCtrl(int num, int open) {
         if (!isConnect){
@@ -267,10 +274,9 @@ public class FloatUniModule extends UniModule implements SettingProviderInterfac
         intercomService.openLockCtrl(num,open);
 
     }
-
-    @UniJSMethod(uiThread = false)
+    @UniJSMethod(uiThread = true)
     @Override
-    public void getDeviceInfo(UniJSCallback uniJsCallback) {
+    public void getCurrentDeviceInfo(UniJSCallback uniJsCallback) {
         if (!isConnect){
             showToast();
             return ;
@@ -278,17 +284,39 @@ public class FloatUniModule extends UniModule implements SettingProviderInterfac
         intercomService.getCurrentDeviceInfo(new Result<LocalDeviceInfo>() {
             @Override
             public void onData(LocalDeviceInfo localDeviceInfo) {
-                String gsonString = new Gson().toJson(localDeviceInfo);
-                Log.d(TAG, "onData: "+gsonString);
-                uniJsCallback.invoke(gsonString);
+                JSONObject jsonObject = new JSONObject();
+                jsonObject.put("deviceName",localDeviceInfo.getDeviceName());
+                jsonObject.put("deviceModel",localDeviceInfo.getDeviceModel());
+                jsonObject.put("customizedModel",localDeviceInfo.getCustomizedModel());
+                jsonObject.put("hardwareVersion",localDeviceInfo.getHardwareVersion());
+                jsonObject.put("NKVersion",localDeviceInfo.getNKVersion());
+                jsonObject.put("modelCode",localDeviceInfo.getModelCode());
+                jsonObject.put("platform",localDeviceInfo.getPlatform());
+                jsonObject.put("account",localDeviceInfo.getAccount());
+                jsonObject.put("password",localDeviceInfo.getPassword());
+                jsonObject.put("encPassword",localDeviceInfo.getEncPassword());
+                jsonObject.put("sipPort",localDeviceInfo.getSipPort());
+                jsonObject.put("sn",localDeviceInfo.getSn());
+                jsonObject.put("mac",localDeviceInfo.getMac());
+                jsonObject.put("ip",localDeviceInfo.getIp());
+
+                jsonObject.put("gateway",localDeviceInfo.getGateway());
+                jsonObject.put("netmask",localDeviceInfo.getNetmask());
+                jsonObject.put("isAllowSDRecording",localDeviceInfo.isAllowSDRecording());
+                jsonObject.put("manufactoryType",localDeviceInfo.getManufactoryType());
+                jsonObject.put("paymentTermCode",localDeviceInfo.getPaymentTermCode());
+                jsonObject.put("produceTime",localDeviceInfo.getProduceTime());
+                jsonObject.put("displayNum",localDeviceInfo.getDisplayNum());
+                jsonObject.put("masterNum",localDeviceInfo.getMasterNum());
+                jsonObject.put("slaveNum",localDeviceInfo.getSlaveNum());
+                uniJsCallback.invokeAndKeepAlive(jsonObject);
             }
         });
 
     }
-
-    @UniJSMethod(uiThread = false)
+    @UniJSMethod(uiThread = true)
     @Override
-    public void onTalkEventListener(UniJSCallback uniJsCallback) {
+    public void talkEventCallback(UniJSCallback uniJsCallback) {
         if (!isConnect){
             showToast();
             return ;
@@ -296,14 +324,104 @@ public class FloatUniModule extends UniModule implements SettingProviderInterfac
         intercomService.talkEventCallback(new Result<TalkEvent>() {
             @Override
             public void onData(TalkEvent talkEvent) {
-                Log.d(TAG, "onData: "+talkEvent.getEventID());
-                String gsonString = new Gson().toJson(talkEvent.getDeviceInfo());
                 JSONObject jsonObject = new JSONObject();
-                jsonObject.put("eventId",String.valueOf(talkEvent.getEventID()));
-                jsonObject.put("device",gsonString);
+                jsonObject.put("eventID",talkEvent.getEventID());
+
+                jsonObject.put("areaID",talkEvent.getDeviceInfo().getAreaID());
+                jsonObject.put("masterNum",talkEvent.getDeviceInfo().getMasterNum());
+                jsonObject.put("slaveNum",talkEvent.getDeviceInfo().getSlaveNum());
+                jsonObject.put("childNum",talkEvent.getDeviceInfo().getChildNum());
+                jsonObject.put("devRegType",talkEvent.getDeviceInfo().getDevRegType());
+                jsonObject.put("ip",talkEvent.getDeviceInfo().getIp());
+                jsonObject.put("description",talkEvent.getDeviceInfo().getDescription());
+                jsonObject.put("talkState",talkEvent.getDeviceInfo().getTalkState());
+                jsonObject.put("door1",talkEvent.getDeviceInfo().getDoorState().size() >= 1);
+                jsonObject.put("door2",talkEvent.getDeviceInfo().getDoorState().size() >= 2);
                 uniJsCallback.invokeAndKeepAlive(jsonObject);
             }
         });
+
+    }
+    @UniJSMethod(uiThread = true)
+    @Override
+    public void onDeviceOnLine(UniJSCallback uniJsCallback) {
+        if (!isConnect){
+            showToast();
+            return ;
+        }
+        intercomService.onDeviceOnLine(new Result<DeviceInfo>() {
+            @Override
+            public void onData(DeviceInfo deviceInfo) {
+                JSONObject jsonObject = new JSONObject();
+                jsonObject.put("areaID",deviceInfo.getAreaID());
+                jsonObject.put("masterNum",deviceInfo.getMasterNum());
+                jsonObject.put("slaveNum",deviceInfo.getSlaveNum());
+                jsonObject.put("childNum",deviceInfo.getChildNum());
+                jsonObject.put("devRegType",deviceInfo.getDevRegType());
+                jsonObject.put("ip",deviceInfo.getIp());
+                jsonObject.put("description",deviceInfo.getDescription());
+                jsonObject.put("talkState",deviceInfo.getTalkState());
+                jsonObject.put("door1",deviceInfo.getDoorState().size() >= 1);
+                jsonObject.put("door2",deviceInfo.getDoorState().size() >= 2);
+                uniJsCallback.invokeAndKeepAlive(jsonObject);
+            }
+        });
+    }
+    @UniJSMethod(uiThread = true)
+    @Override
+    public void onDeviceOffLine(UniJSCallback uniJsCallback) {
+        if (!isConnect){
+            showToast();
+            return ;
+        }
+        intercomService.onDeviceOnLine(new Result<DeviceInfo>() {
+            @Override
+            public void onData(DeviceInfo deviceInfo) {
+                JSONObject jsonObject = new JSONObject();
+                jsonObject.put("areaID",deviceInfo.getAreaID());
+                jsonObject.put("masterNum",deviceInfo.getMasterNum());
+                jsonObject.put("slaveNum",deviceInfo.getSlaveNum());
+                jsonObject.put("childNum",deviceInfo.getChildNum());
+                jsonObject.put("devRegType",deviceInfo.getDevRegType());
+                jsonObject.put("ip",deviceInfo.getIp());
+                jsonObject.put("description",deviceInfo.getDescription());
+                jsonObject.put("talkState",deviceInfo.getTalkState());
+                jsonObject.put("door1",deviceInfo.getDoorState().size() >= 1);
+                jsonObject.put("door2",deviceInfo.getDoorState().size() >= 2);
+                uniJsCallback.invokeAndKeepAlive(jsonObject);
+            }
+        });
+
+    }
+    @UniJSMethod(uiThread = true)
+    @Override
+    public void listenToTalk() {
+        if (!isConnect){
+            showToast();
+            return ;
+        }
+
+        intercomService.listenToTalk();
+    }
+    @UniJSMethod(uiThread = true)
+    @Override
+    public void hideTalkView(Boolean hide) {
+        if (!isConnect){
+            showToast();
+            return ;
+        }
+        intercomService.hideTalkView(hide);
+
+    }
+    @UniJSMethod(uiThread = true)
+    @Override
+    public void oneKeyCall() {
+        if (!isConnect){
+            showToast();
+            return ;
+        }
+        intercomService.oneKeyCall();
+
     }
 
 
@@ -398,48 +516,25 @@ public class FloatUniModule extends UniModule implements SettingProviderInterfac
         }else {
             jsonObject.put("code",0);
             fingerprintService.stop();
-            fingerprintService.destroy();
         }
         uniJSCallback.invoke(jsonObject);
     }
 
     @UniJSMethod(uiThread = true)
     @Override
-    public void fingerprintCollect(String id,UniJSCallback uniJSCallback) {
+    public void fingerprintCollect(String id) {
         Log.d(TAG, "fingerprintCollect: ");
-        JSONObject jsonObject = new JSONObject();
-        if (!isConnect){
-            showToast();
-            jsonObject.put("code",-1);
-        }else {
-            jsonObject.put("code",0);
-        }
         fingerprintService.fingerprintCollect(id);
-        uniJSCallback.invoke(jsonObject);
 
     }
 
     @UniJSMethod(uiThread = true)
     @Override
-    public void fingerprintFeatureInput(String id, String feature,UniJSCallback uniJSCallback) {
+    public void fingerprintFeatureInput(String id, String feature) {
         Log.d(TAG, "fingerprintFeatureInput: ");
-        JSONObject jsonObject = new JSONObject();
-        if (!isConnect){
-            showToast();
-            jsonObject.put("code",-1);
-        }else {
-            jsonObject.put("code",0);
-        }
         fingerprintService.fingerprintFeatureInput(id,feature);
-        uniJSCallback.invoke(jsonObject);
-
     }
 
-
-    /**
-     * 指纹采集和指纹特征值入库的结果通过此CallBack返回
-     * @param uniJSCallback
-     */
     @UniJSMethod(uiThread = false)
     @Override
     public void setFingerprintFeatureCallBack(UniJSCallback uniJSCallback) {
@@ -450,30 +545,20 @@ public class FloatUniModule extends UniModule implements SettingProviderInterfac
         Log.d(TAG, "setGetFingerprintFeatureCallBack: ");
         fingerprintService.setFingerprintFeatureCallBack(new Result<CallbackData<FingerprintFeatureResult>>() {
             @Override
-            public void onData(CallbackData<FingerprintFeatureResult> result) {
+            public void onData(CallbackData<FingerprintFeatureResult> callbackData) {
                 JSONObject jsonObject = new JSONObject();
-                jsonObject.put("code",String.valueOf(result.getCode()));
-                jsonObject.put("msg",result.getMsg());
-                String id = "";
-                String feature = "";
-                if (result.getData() != null){
-                    id = result.getData().getId();
-                    feature = result.getData().getFeature();
-                }
-                jsonObject.put("id",id);
-                jsonObject.put("feature",feature);
+                jsonObject.put("code",String.valueOf(callbackData.getCode()));
+                jsonObject.put("msg",callbackData.getMsg());
+                jsonObject.put("id",String.valueOf(callbackData.getData().getId()));
+                jsonObject.put("feature",callbackData.getData().getFeature());
                 uniJSCallback.invokeAndKeepAlive(jsonObject);
             }
         });
     }
 
-    /**
-     * 采集指纹，以及结果回调
-     * @param uniJSCallback
-     */
     @UniJSMethod(uiThread = false)
     @Override
-    public void setFingerprintLeftNumCallBack(UniJSCallback uniJSCallback) {
+    public void setFingerprintFeatureLeftNumCallBack(UniJSCallback uniJSCallback) {
         if (!isConnect){
             showToast();
             return ;
@@ -481,56 +566,30 @@ public class FloatUniModule extends UniModule implements SettingProviderInterfac
         Log.d(TAG, "setGetFingerprintFeatureLeftNumCallBack: ");
         fingerprintService.setFingerprintLeftNumCallBack(new Result<CallbackData<FingerprintLeftNumResult>>() {
             @Override
-            public void onData(CallbackData<FingerprintLeftNumResult> result) {
+            public void onData(CallbackData<FingerprintLeftNumResult> callbackData) {
                 JSONObject jsonObject = new JSONObject();
-                jsonObject.put("code",String.valueOf(result.getCode()));
-                jsonObject.put("msg",result.getMsg());
-
-                String leftCounts = "";
-                String fingerprintBase64Str = "";
-                if (result.getData() != null){
-                    leftCounts = String.valueOf(result.getData().getLeftCounts());
-                    fingerprintBase64Str = result.getData().getFingerprintBase64Str();
-                }
-                jsonObject.put("leftCounts",leftCounts);
-                jsonObject.put("fingerprintBase64Str",fingerprintBase64Str);
-
+                jsonObject.put("leftCounts",String.valueOf(callbackData.getData().getLeftCounts()));
+                jsonObject.put("fingerprintBase64Str",callbackData.getData().getFingerprintBase64Str());
                 uniJSCallback.invokeAndKeepAlive(jsonObject);
             }
         });
     }
 
-    /**
-     * 指纹比对以及结果回调
-     * @param uniJSCallback
-     */
     @UniJSMethod(uiThread = false)
     @Override
-    public void setFingerprintCompareCallBack(UniJSCallback uniJSCallback) {
+    public void setCompareFingerprintCallBack(UniJSCallback uniJSCallback) {
         if (!isConnect){
             showToast();
             return ;
         }
         Log.d(TAG, "setGetCompareFingerprintCallBack: ");
-        fingerprintService.fingerprintRecognition();
         fingerprintService.setFingerprintCompareCallBack(new Result<CallbackData<FingerprintCompareResult>>() {
             @Override
-            public void onData(CallbackData<FingerprintCompareResult> result) {
+            public void onData(CallbackData<FingerprintCompareResult> callbackData) {
                 JSONObject jsonObject = new JSONObject();
-                jsonObject.put("code",String.valueOf(result.getCode()));
-                jsonObject.put("msg",result.getMsg());
-
-                String id = "";
-                String feature = "";
-                String fingerprintBase64Str = "";
-                if (result.getData() != null){
-                    id = result.getData().getId();
-                    feature = result.getData().getFeature();
-                    fingerprintBase64Str = result.getData().getFingerprintBase64Str();
-                }
-                jsonObject.put("id",id);
-                jsonObject.put("feature",feature);
-                jsonObject.put("fingerprintBase64Str",fingerprintBase64Str);
+                jsonObject.put("id",callbackData.getData().getId());
+                jsonObject.put("feature",callbackData.getData().getFeature());
+                jsonObject.put("fingerprintBase64Str",callbackData.getData().getFingerprintBase64Str());
                 uniJSCallback.invokeAndKeepAlive(jsonObject);
             }
         });

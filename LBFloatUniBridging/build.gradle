@@ -4,6 +4,7 @@ plugins {
 }
 group = 'com.lonbon.floatunibridging'
 version = '1.0'
+
 android {
     compileSdkVersion rootProject.ext.compileSdkVersion
     buildToolsVersion rootProject.ext.buildToolsVersion
@@ -49,7 +50,5 @@ dependencies {
     androidTestImplementation "androidx.test.espresso:espresso-core:$rootProject.espressocoreVersion"
 
     compileOnly "com.alibaba:fastjson:$rootProject.fastjsonVersion"
-
-//    implementation "com.github.Lon-Bon:lb-extend-service:+"
-    api "com.github.Lon-Bon:lb-extend-service:e4a660f328"
+    implementation "com.github.Lon-Bon:lb-extend-service:develop-SNAPSHOT"
 }
