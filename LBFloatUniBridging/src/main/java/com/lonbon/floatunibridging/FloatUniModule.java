@@ -274,7 +274,7 @@ public class FloatUniModule extends UniModule implements SettingProviderInterfac
         intercomService.openLockCtrl(num,open);
 
     }
-    @UniJSMethod(uiThread = true)
+    @UniJSMethod(uiThread = false)
     @Override
     public void getCurrentDeviceInfo(UniJSCallback uniJsCallback) {
         if (!isConnect){
@@ -314,7 +314,7 @@ public class FloatUniModule extends UniModule implements SettingProviderInterfac
         });
 
     }
-    @UniJSMethod(uiThread = true)
+    @UniJSMethod(uiThread = false)
     @Override
     public void talkEventCallback(UniJSCallback uniJsCallback) {
         if (!isConnect){
@@ -342,7 +342,7 @@ public class FloatUniModule extends UniModule implements SettingProviderInterfac
         });
 
     }
-    @UniJSMethod(uiThread = true)
+    @UniJSMethod(uiThread = false)
     @Override
     public void onDeviceOnLine(UniJSCallback uniJsCallback) {
         if (!isConnect){
@@ -367,7 +367,7 @@ public class FloatUniModule extends UniModule implements SettingProviderInterfac
             }
         });
     }
-    @UniJSMethod(uiThread = true)
+    @UniJSMethod(uiThread = false)
     @Override
     public void onDeviceOffLine(UniJSCallback uniJsCallback) {
         if (!isConnect){
