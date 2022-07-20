@@ -277,7 +277,7 @@ public class FloatUniModule extends UniModule implements SettingProviderInterfac
         intercomService.openLockCtrl(num,open);
 
     }
-    @UniJSMethod(uiThread = false)
+    @UniJSMethod(uiThread = true)
     @Override
     public void getCurrentDeviceInfo(UniJSCallback uniJsCallback) {
         if (!isConnect){

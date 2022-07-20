@@ -54,7 +54,6 @@ public interface SettingProviderInterface {
     /**
      * 指纹采集（同步方法）
      * @param id  指纹id
-     * @return 0：调用成功，其它值失败。指纹id和采集到的特征值
      * 通过setGetFingerprintFeatureCallBack设置的回调返回
      */
     void fingerprintCollect(String id);
