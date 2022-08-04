@@ -63,7 +63,7 @@ public class FloatUniModule extends UniModule implements SettingProviderInterfac
     private FingerprintService fingerprintService ;
 
 
-    @UniJSMethod(uiThread = false)
+    @UniJSMethod(uiThread = true)
     public void initIPCManager(UniJSCallback uniJsCallback){
         //传入上下文
         IpcManager.INSTANCE.init(mUniSDKInstance.getContext());
@@ -105,7 +105,7 @@ public class FloatUniModule extends UniModule implements SettingProviderInterfac
     }
 
     //run JS thread
-    @UniJSMethod(uiThread = false)
+    @UniJSMethod(uiThread = true)
     public String syncFunc(String methodName){
         Log.d(TAG, "syncFunc: "+methodName);
         Toast.makeText(mUniSDKInstance.getContext(), methodName, Toast.LENGTH_SHORT).show();
@@ -125,7 +125,7 @@ public class FloatUniModule extends UniModule implements SettingProviderInterfac
         intercomService.setTalkViewPosition(left,top,width,height);
     }
 
-    @UniJSMethod(uiThread = false)
+    @UniJSMethod(uiThread = true)
     @Override
     public void extDoorLampCtrl(int color, int open) {
         if (!isConnect){
@@ -136,7 +136,7 @@ public class FloatUniModule extends UniModule implements SettingProviderInterfac
         intercomService.extDoorLampCtrl(color,open);
     }
 
-    @UniJSMethod(uiThread = false)
+    @UniJSMethod(uiThread = true)
     @Override
     public void onDoorContactValue(UniJSCallback uniJsCallback) {
         if (!isConnect){
@@ -155,7 +155,7 @@ public class FloatUniModule extends UniModule implements SettingProviderInterfac
         });
     }
 
-    @UniJSMethod(uiThread = false)
+    @UniJSMethod(uiThread = true)
     @Override
     public void asyncGetDeviceListInfo(int areaId, int masterNum, int slaveNum, int devRegType, UniJSCallback uniJsCallback) {
         if (!isConnect){
@@ -173,7 +173,7 @@ public class FloatUniModule extends UniModule implements SettingProviderInterfac
         });
     }
 
-    @UniJSMethod(uiThread = false)
+    @UniJSMethod(uiThread = true)
     @Override
     public void updateDeviceTalkState(UniJSCallback uniJsCallback) {
         if (!isConnect){
@@ -317,7 +317,7 @@ public class FloatUniModule extends UniModule implements SettingProviderInterfac
         });
 
     }
-    @UniJSMethod(uiThread = false)
+    @UniJSMethod(uiThread = true)
     @Override
     public void talkEventCallback(UniJSCallback uniJsCallback) {
         if (!isConnect){
@@ -345,7 +345,7 @@ public class FloatUniModule extends UniModule implements SettingProviderInterfac
         });
 
     }
-    @UniJSMethod(uiThread = false)
+    @UniJSMethod(uiThread = true)
     @Override
     public void onDeviceOnLine(UniJSCallback uniJsCallback) {
         if (!isConnect){
@@ -370,7 +370,7 @@ public class FloatUniModule extends UniModule implements SettingProviderInterfac
             }
         });
     }
-    @UniJSMethod(uiThread = false)
+    @UniJSMethod(uiThread = true)
     @Override
     public void onDeviceOffLine(UniJSCallback uniJsCallback) {
         if (!isConnect){
@@ -471,7 +471,7 @@ public class FloatUniModule extends UniModule implements SettingProviderInterfac
      * 刷卡回调
      * @param uniJSCallback
      */
-    @UniJSMethod(uiThread = false)
+    @UniJSMethod(uiThread = true)
     @Override
     public void setCardDataCallBack(UniJSCallback uniJSCallback){
         if (!isConnect){
@@ -538,7 +538,7 @@ public class FloatUniModule extends UniModule implements SettingProviderInterfac
         fingerprintService.fingerprintFeatureInput(id,feature);
     }
 
-    @UniJSMethod(uiThread = false)
+    @UniJSMethod(uiThread = true)
     @Override
     public void setFingerprintFeatureCallBack(UniJSCallback uniJSCallback) {
         if (!isConnect){
@@ -559,7 +559,7 @@ public class FloatUniModule extends UniModule implements SettingProviderInterfac
         });
     }
 
-    @UniJSMethod(uiThread = false)
+    @UniJSMethod(uiThread = true)
     @Override
     public void setFingerprintFeatureLeftNumCallBack(UniJSCallback uniJSCallback) {
         if (!isConnect){
@@ -578,7 +578,7 @@ public class FloatUniModule extends UniModule implements SettingProviderInterfac
         });
     }
 
-    @UniJSMethod(uiThread = false)
+    @UniJSMethod(uiThread = true)
     @Override
     public void setCompareFingerprintCallBack(UniJSCallback uniJSCallback) {
         if (!isConnect){
@@ -632,7 +632,7 @@ public class FloatUniModule extends UniModule implements SettingProviderInterfac
 
     }
 
-    @UniJSMethod(uiThread = false)
+    @UniJSMethod(uiThread = true)
     @Override
     public void setTemperatureDataCallBack(UniJSCallback uniJSCallback) {
         if (!isConnect){
@@ -654,7 +654,7 @@ public class FloatUniModule extends UniModule implements SettingProviderInterfac
     }
     /**********************************************************************************/
 
-    @UniJSMethod(uiThread = false)
+    @UniJSMethod(uiThread = true)
     @Override
     public void setSystemTime(long time) {
         if (!isConnect){
@@ -665,7 +665,7 @@ public class FloatUniModule extends UniModule implements SettingProviderInterfac
         systemSettingService.setSystemTime(time);
     }
 
-    @UniJSMethod(uiThread = false)
+    @UniJSMethod(uiThread = true)
     @Override
     public void setStreamVolumeTypeMusic(int value) {
         AudioManagerHelper audioManagerHelper = new AudioManagerHelper(mUniSDKInstance.getContext());
@@ -687,7 +687,7 @@ public class FloatUniModule extends UniModule implements SettingProviderInterfac
 
     }
 
-    @UniJSMethod(uiThread = false)
+    @UniJSMethod(uiThread = true)
     @Override
     public void setStreamVolumeTypeAlarm(int value) {
         AudioManagerHelper audioManagerHelper = new AudioManagerHelper(mUniSDKInstance.getContext());
@@ -709,7 +709,7 @@ public class FloatUniModule extends UniModule implements SettingProviderInterfac
         uniJSCallback.invoke(jsonObject);
     }
 
-    @UniJSMethod(uiThread = false)
+    @UniJSMethod(uiThread = true)
     @Override
     public void setStreamVolumeTypeRing(int value) {
         AudioManagerHelper audioManagerHelper = new AudioManagerHelper(mUniSDKInstance.getContext());
@@ -730,7 +730,7 @@ public class FloatUniModule extends UniModule implements SettingProviderInterfac
         uniJSCallback.invoke(jsonObject);
     }
 
-    @UniJSMethod(uiThread = false)
+    @UniJSMethod(uiThread = true)
     @Override
     public void setStreamVolumeTypeSystem(int value) {
         AudioManagerHelper audioManagerHelper = new AudioManagerHelper(mUniSDKInstance.getContext());
@@ -751,7 +751,7 @@ public class FloatUniModule extends UniModule implements SettingProviderInterfac
         uniJSCallback.invoke(jsonObject);
     }
 
-    @UniJSMethod(uiThread = false)
+    @UniJSMethod(uiThread = true)
     @Override
     public void setStreamVolumeTypeVoiceCall(int value) {
         AudioManagerHelper audioManagerHelper = new AudioManagerHelper(mUniSDKInstance.getContext());
@@ -770,6 +770,17 @@ public class FloatUniModule extends UniModule implements SettingProviderInterfac
         JSONObject jsonObject = new JSONObject();
         jsonObject.put("value",value);
         uniJSCallback.invoke(jsonObject);
+    }
+
+    @UniJSMethod(uiThread = true)
+    @Override
+    public void rebootSystem() {
+        if (!isConnect){
+            showToast();
+            return ;
+        }
+        Log.d(TAG, "rebootSystem: ");
+        systemSettingService.rebootSystem();
     }
 
     /**********************************************************************************/

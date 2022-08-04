@@ -161,6 +161,10 @@ public interface SettingProviderInterface {
     void getStreamVolumeTypeVoiceCall(UniJSCallback uniJSCallback);
 
     /***************************************************************************/
+    /**
+     * 重启设备
+     */
+    void rebootSystem();
 
     /***************************************************************************/
 
