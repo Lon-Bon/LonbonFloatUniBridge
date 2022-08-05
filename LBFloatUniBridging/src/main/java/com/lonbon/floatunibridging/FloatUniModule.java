@@ -99,17 +99,55 @@ public class FloatUniModule extends UniModule implements SettingProviderInterfac
 
     //run ui thread
     @UniJSMethod(uiThread = true)
-    public String printClassNameTest(){
+    public void printClassNameTest(UniJSCallback uniJsCallback){
+        Log.d(TAG, "printClassNameTest");
         Toast.makeText(mUniSDKInstance.getContext(), TAG, Toast.LENGTH_SHORT).show();
-        return TAG;
+        if (intercomService == null){
+            Log.d(TAG, "getCurrentDeviceInfo: intercomService is null !");
+            return;
+        }
+        intercomService.getCurrentDeviceInfo(new Result<LocalDeviceInfo>() {
+            @Override
+            public void onData(LocalDeviceInfo localDeviceInfo) {
+                Toast.makeText(mUniSDKInstance.getContext(), localDeviceInfo.toString(), Toast.LENGTH_SHORT).show();
+                JSONObject jsonObject = new JSONObject();
+                jsonObject.put("deviceName",localDeviceInfo.getDeviceName());
+                jsonObject.put("deviceModel",localDeviceInfo.getDeviceModel());
+                jsonObject.put("customizedModel",localDeviceInfo.getCustomizedModel());
+                jsonObject.put("hardwareVersion",localDeviceInfo.getHardwareVersion());
+                jsonObject.put("NKVersion",localDeviceInfo.getNKVersion());
+                jsonObject.put("modelCode",localDeviceInfo.getModelCode());
+                jsonObject.put("platform",localDeviceInfo.getPlatform());
+                jsonObject.put("account",localDeviceInfo.getAccount());
+                jsonObject.put("password",localDeviceInfo.getPassword());
+                jsonObject.put("encPassword",localDeviceInfo.getEncPassword());
+                jsonObject.put("sipPort",localDeviceInfo.getSipPort());
+                jsonObject.put("sn",localDeviceInfo.getSn());
+                jsonObject.put("mac",localDeviceInfo.getMac());
+                jsonObject.put("ip",localDeviceInfo.getIp());
+
+                jsonObject.put("gateway",localDeviceInfo.getGateway());
+                jsonObject.put("netmask",localDeviceInfo.getNetmask());
+                jsonObject.put("isAllowSDRecording",localDeviceInfo.isAllowSDRecording());
+                jsonObject.put("manufactoryType",localDeviceInfo.getManufactoryType());
+                jsonObject.put("paymentTermCode",localDeviceInfo.getPaymentTermCode());
+                jsonObject.put("produceTime",localDeviceInfo.getProduceTime());
+                jsonObject.put("displayNum",localDeviceInfo.getDisplayNum());
+                jsonObject.put("masterNum",localDeviceInfo.getMasterNum());
+                jsonObject.put("slaveNum",localDeviceInfo.getSlaveNum());
+                uniJsCallback.invokeAndKeepAlive(jsonObject);
+            }
+        });
     }
 
     //run JS thread
     @UniJSMethod(uiThread = true)
-    public String syncFunc(String methodName){
+    public void syncFunc(String methodName,UniJSCallback uniJsCallback){
         Log.d(TAG, "syncFunc: "+methodName);
         Toast.makeText(mUniSDKInstance.getContext(), methodName, Toast.LENGTH_SHORT).show();
-        return methodName;
+        JSONObject jsonObject = new JSONObject();
+        jsonObject.put("syncFunc",methodName);
+        uniJsCallback.invoke(jsonObject);
     }
     /*********************************************/
 
@@ -122,6 +160,10 @@ public class FloatUniModule extends UniModule implements SettingProviderInterfac
             return ;
         }
         Log.d(TAG, "setTalkViewPosition: ");
+        if (intercomService == null){
+            Log.d(TAG, "setTalkViewPosition: intercomService is null !");
+            return;
+        }
         intercomService.setTalkViewPosition(left,top,width,height);
     }
 
@@ -133,6 +175,10 @@ public class FloatUniModule extends UniModule implements SettingProviderInterfac
             return ;
         }
         Log.d(TAG, "extDoorLampCtrl: ");
+        if (intercomService == null){
+            Log.d(TAG, "extDoorLampCtrl: intercomService is null !");
+            return;
+        }
         intercomService.extDoorLampCtrl(color,open);
     }
 
@@ -144,6 +190,10 @@ public class FloatUniModule extends UniModule implements SettingProviderInterfac
             return ;
         }
         Log.d(TAG, "onDoorContactValue: ");
+        if (intercomService == null){
+            Log.d(TAG, "onDoorContactValue: intercomService is null !");
+            return;
+        }
         intercomService.onDoorContactValue(new Result<DoorContact>() {
             @Override
             public void onData(DoorContact doorContact) {
@@ -163,6 +213,10 @@ public class FloatUniModule extends UniModule implements SettingProviderInterfac
             return ;
         }
         Log.d(TAG, "asyncGetDeviceListInfo: ");
+        if (intercomService == null){
+            Log.d(TAG, "asyncGetDeviceListInfo: intercomService is null !");
+            return;
+        }
         intercomService.asyncGetDeviceListInfo(areaId,masterNum,slaveNum,devRegType, new Result<ArrayList<DeviceInfo>>() {
             @Override
             public void onData(ArrayList<DeviceInfo> deviceInfos) {
@@ -181,6 +235,10 @@ public class FloatUniModule extends UniModule implements SettingProviderInterfac
             return ;
         }
         Log.d(TAG, "updateDeviceTalkState: ");
+        if (intercomService == null){
+            Log.d(TAG, "updateDeviceTalkState: intercomService is null !");
+            return;
+        }
         intercomService.updateDeviceTalkState(new Result<DeviceInfo>() {
             @Override
             public void onData(DeviceInfo deviceInfo) {
@@ -208,6 +266,10 @@ public class FloatUniModule extends UniModule implements SettingProviderInterfac
             return ;
         }
         Log.d(TAG, "deviceClick: ");
+        if (intercomService == null){
+            Log.d(TAG, "deviceClick: intercomService is null !");
+            return;
+        }
         intercomService.masterClickItem(masterNum,slaveNum,areaId,devRegType);
     }
 
@@ -226,6 +288,10 @@ public class FloatUniModule extends UniModule implements SettingProviderInterfac
             return ;
         }
         Log.d(TAG, "nativeCall: ");
+        if (intercomService == null){
+            Log.d(TAG, "nativeCall: intercomService is null !");
+            return;
+        }
         intercomService.call(masterNum,slaveNum,areaId,devRegType);
 
     }
@@ -245,6 +311,10 @@ public class FloatUniModule extends UniModule implements SettingProviderInterfac
             return ;
         }
         Log.d(TAG, "nativeAnswer: ");
+        if (intercomService == null){
+            Log.d(TAG, "nativeAnswer: intercomService is null !");
+            return;
+        }
         intercomService.answer(masterNum,slaveNum,areaId,devRegType);
 
     }
@@ -264,6 +334,10 @@ public class FloatUniModule extends UniModule implements SettingProviderInterfac
             return ;
         }
         Log.d(TAG, "nativeHangup: ");
+        if (intercomService == null){
+            Log.d(TAG, "nativeHangup: intercomService is null !");
+            return;
+        }
         intercomService.hangup(masterNum,slaveNum,areaId,devRegType);
 
     }
@@ -274,6 +348,10 @@ public class FloatUniModule extends UniModule implements SettingProviderInterfac
             showToast();
             return ;
         }
+        if (intercomService == null){
+            Log.d(TAG, "openLockCtrl: intercomService is null !");
+            return;
+        }
         intercomService.openLockCtrl(num,open);
 
     }
@@ -283,6 +361,10 @@ public class FloatUniModule extends UniModule implements SettingProviderInterfac
         if (!isConnect){
             showToast();
             return ;
+        }
+        if (intercomService == null){
+            Log.d(TAG, "getCurrentDeviceInfo: intercomService is null !");
+            return;
         }
         intercomService.getCurrentDeviceInfo(new Result<LocalDeviceInfo>() {
             @Override
@@ -324,6 +406,10 @@ public class FloatUniModule extends UniModule implements SettingProviderInterfac
             showToast();
             return ;
         }
+        if (intercomService == null){
+            Log.d(TAG, "talkEventCallback: intercomService is null !");
+            return;
+        }
         intercomService.talkEventCallback(new Result<TalkEvent>() {
             @Override
             public void onData(TalkEvent talkEvent) {
@@ -352,6 +438,10 @@ public class FloatUniModule extends UniModule implements SettingProviderInterfac
             showToast();
             return ;
         }
+        if (intercomService == null){
+            Log.d(TAG, "onDeviceOnLine: intercomService is null !");
+            return;
+        }
         intercomService.onDeviceOnLine(new Result<DeviceInfo>() {
             @Override
             public void onData(DeviceInfo deviceInfo) {
@@ -376,6 +466,10 @@ public class FloatUniModule extends UniModule implements SettingProviderInterfac
         if (!isConnect){
             showToast();
             return ;
+        }
+        if (intercomService == null){
+            Log.d(TAG, "onDeviceOffLine: intercomService is null !");
+            return;
         }
         intercomService.onDeviceOffLine(new Result<DeviceInfo>() {
             @Override
@@ -403,7 +497,10 @@ public class FloatUniModule extends UniModule implements SettingProviderInterfac
             showToast();
             return ;
         }
-
+        if (intercomService == null){
+            Log.d(TAG, "listenToTalk: intercomService is null !");
+            return;
+        }
         intercomService.listenToTalk();
     }
     @UniJSMethod(uiThread = true)
@@ -412,6 +509,10 @@ public class FloatUniModule extends UniModule implements SettingProviderInterfac
         if (!isConnect){
             showToast();
             return ;
+        }
+        if (intercomService == null){
+            Log.d(TAG, "hideTalkView: intercomService is null !");
+            return;
         }
         intercomService.hideTalkView(hide);
 
@@ -422,6 +523,10 @@ public class FloatUniModule extends UniModule implements SettingProviderInterfac
         if (!isConnect){
             showToast();
             return ;
+        }
+        if (intercomService == null){
+            Log.d(TAG, "oneKeyCall: intercomService is null !");
+            return;
         }
         intercomService.oneKeyCall();
 
@@ -444,6 +549,10 @@ public class FloatUniModule extends UniModule implements SettingProviderInterfac
             jsonObject.put("code",-1);
         }else {
             jsonObject.put("code",0);
+            if (swingCardService == null){
+                Log.d(TAG, "syncStartCard: swingCardService is null !");
+                return;
+            }
             swingCardService.start();
         }
         uniJSCallback.invoke(jsonObject);
@@ -462,6 +571,10 @@ public class FloatUniModule extends UniModule implements SettingProviderInterfac
             jsonObject.put("code",-1);
         }else {
             jsonObject.put("code",0);
+            if (swingCardService == null){
+                Log.d(TAG, "syncStopCard: swingCardService is null !");
+                return;
+            }
             swingCardService.stop();
         }
         uniJSCallback.invoke(jsonObject);
@@ -479,6 +592,10 @@ public class FloatUniModule extends UniModule implements SettingProviderInterfac
             return ;
         }
         Log.d(TAG, "setCardDataCallBack: ");
+        if (swingCardService == null){
+            Log.d(TAG, "setCardDataCallBack: swingCardService is null !");
+            return;
+        }
         swingCardService.setCardDataCallBack(new Result<CallbackData<CardData>>() {
             @Override
             public void onData(CallbackData<CardData> cardDataCallbackData) {
@@ -502,6 +619,10 @@ public class FloatUniModule extends UniModule implements SettingProviderInterfac
             jsonObject.put("code",-1);
         }else {
             jsonObject.put("code",0);
+            if (fingerprintService == null){
+                Log.d(TAG, "syncStartFinger: fingerprintService is null !");
+                return;
+            }
             fingerprintService.init();
         }
         uniJSCallback.invoke(jsonObject);
@@ -518,6 +639,10 @@ public class FloatUniModule extends UniModule implements SettingProviderInterfac
             jsonObject.put("code",-1);
         }else {
             jsonObject.put("code",0);
+            if (fingerprintService == null){
+                Log.d(TAG, "syncStopFinger: fingerprintService is null !");
+                return;
+            }
             fingerprintService.stop();
         }
         uniJSCallback.invoke(jsonObject);
@@ -527,6 +652,10 @@ public class FloatUniModule extends UniModule implements SettingProviderInterfac
     @Override
     public void fingerprintCollect(String id) {
         Log.d(TAG, "fingerprintCollect: ");
+        if (fingerprintService == null){
+            Log.d(TAG, "fingerprintCollect: fingerprintService is null !");
+            return;
+        }
         fingerprintService.fingerprintCollect(id);
 
     }
@@ -535,6 +664,10 @@ public class FloatUniModule extends UniModule implements SettingProviderInterfac
     @Override
     public void fingerprintFeatureInput(String id, String feature) {
         Log.d(TAG, "fingerprintFeatureInput: ");
+        if (fingerprintService == null){
+            Log.d(TAG, "fingerprintFeatureInput: fingerprintService is null !");
+            return;
+        }
         fingerprintService.fingerprintFeatureInput(id,feature);
     }
 
@@ -546,6 +679,10 @@ public class FloatUniModule extends UniModule implements SettingProviderInterfac
             return ;
         }
         Log.d(TAG, "setGetFingerprintFeatureCallBack: ");
+        if (fingerprintService == null){
+            Log.d(TAG, "setFingerprintFeatureCallBack: fingerprintService is null !");
+            return;
+        }
         fingerprintService.setFingerprintFeatureCallBack(new Result<CallbackData<FingerprintFeatureResult>>() {
             @Override
             public void onData(CallbackData<FingerprintFeatureResult> callbackData) {
@@ -567,6 +704,10 @@ public class FloatUniModule extends UniModule implements SettingProviderInterfac
             return ;
         }
         Log.d(TAG, "setGetFingerprintFeatureLeftNumCallBack: ");
+        if (fingerprintService == null){
+            Log.d(TAG, "setFingerprintFeatureLeftNumCallBack: fingerprintService is null !");
+            return;
+        }
         fingerprintService.setFingerprintLeftNumCallBack(new Result<CallbackData<FingerprintLeftNumResult>>() {
             @Override
             public void onData(CallbackData<FingerprintLeftNumResult> callbackData) {
@@ -586,6 +727,10 @@ public class FloatUniModule extends UniModule implements SettingProviderInterfac
             return ;
         }
         Log.d(TAG, "setGetCompareFingerprintCallBack: ");
+        if (fingerprintService == null){
+            Log.d(TAG, "setCompareFingerprintCallBack: fingerprintService is null !");
+            return;
+        }
         fingerprintService.setFingerprintCompareCallBack(new Result<CallbackData<FingerprintCompareResult>>() {
             @Override
             public void onData(CallbackData<FingerprintCompareResult> callbackData) {
@@ -610,6 +755,10 @@ public class FloatUniModule extends UniModule implements SettingProviderInterfac
             jsonObject.put("code",-1);
         }else {
             jsonObject.put("code",0);
+            if (temperatureMeasurementService == null){
+                Log.d(TAG, "syncStartTemperature: temperatureMeasurementService is null !");
+                return;
+            }
             temperatureMeasurementService.start();
         }
         uniJSCallback.invoke(jsonObject);
@@ -626,6 +775,10 @@ public class FloatUniModule extends UniModule implements SettingProviderInterfac
             jsonObject.put("code",-1);
         }else {
             jsonObject.put("code",0);
+            if (temperatureMeasurementService == null){
+                Log.d(TAG, "syncStopTemperature: temperatureMeasurementService is null !");
+                return;
+            }
             temperatureMeasurementService.stop();
         }
         uniJSCallback.invoke(jsonObject);
@@ -640,6 +793,10 @@ public class FloatUniModule extends UniModule implements SettingProviderInterfac
             return ;
         }
         Log.d(TAG, "setTemperatureDataCallBack: ");
+        if (temperatureMeasurementService == null){
+            Log.d(TAG, "setTemperatureDataCallBack: temperatureMeasurementService is null !");
+            return;
+        }
         temperatureMeasurementService.setTemperatureDataCallBack(new Result<CallbackData<TemperatureData>>() {
             @Override
             public void onData(CallbackData<TemperatureData> callbackData) {
@@ -662,6 +819,10 @@ public class FloatUniModule extends UniModule implements SettingProviderInterfac
         return ;
         }
         Log.d(TAG, "setSystemTime: "+time);
+        if (systemSettingService == null){
+            Log.d(TAG, "setSystemTime: systemSettingService is null !");
+            return;
+        }
         systemSettingService.setSystemTime(time);
     }
 
@@ -780,6 +941,10 @@ public class FloatUniModule extends UniModule implements SettingProviderInterfac
             return ;
         }
         Log.d(TAG, "rebootSystem: ");
+        if (systemSettingService == null){
+            Log.d(TAG, "rebootSystem: systemSettingService is null !");
+            return;
+        }
         systemSettingService.rebootSystem();
     }
 
