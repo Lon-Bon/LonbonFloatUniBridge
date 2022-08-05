@@ -72,12 +72,12 @@ public class FloatUniModule extends UniModule implements SettingProviderInterfac
             @Override
             public Unit invoke() {
                 isConnect = true;
-                Log.d(TAG, "initIPCManager:invoke: 服务链接成功！");
-                Toast.makeText(mUniSDKInstance.getContext(), "服务链接成功！", Toast.LENGTH_LONG).show();
                 initService();
                 JSONObject jsonObject = new JSONObject();
                 jsonObject.put("code",0);
                 uniJsCallback.invoke(jsonObject);
+                Log.d(TAG, "initIPCManager:invoke: 服务链接成功！");
+                Toast.makeText(mUniSDKInstance.getContext(), "服务链接成功！", Toast.LENGTH_LONG).show();
                 return null;
             }
         });
@@ -377,7 +377,7 @@ public class FloatUniModule extends UniModule implements SettingProviderInterfac
             showToast();
             return ;
         }
-        intercomService.onDeviceOnLine(new Result<DeviceInfo>() {
+        intercomService.onDeviceOffLine(new Result<DeviceInfo>() {
             @Override
             public void onData(DeviceInfo deviceInfo) {
                 JSONObject jsonObject = new JSONObject();
