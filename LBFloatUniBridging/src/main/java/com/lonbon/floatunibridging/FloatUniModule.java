@@ -660,6 +660,18 @@ public class FloatUniModule extends UniModule implements SettingProviderInterfac
         fingerprintService.fingerprintCollect(id);
 
     }
+    @UniJSMethod(uiThread = true)
+    @Override
+    public void fingerprintRecognition() {
+        Log.d(TAG, "fingerprintCollect: ");
+        if (fingerprintService == null){
+            Log.d(TAG, "fingerprintCollect: fingerprintService is null !");
+            return;
+        }
+        fingerprintService.fingerprintRecognition();
+
+    }
+
 
     @UniJSMethod(uiThread = true)
     @Override

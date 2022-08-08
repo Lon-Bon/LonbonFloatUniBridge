@@ -59,6 +59,11 @@ public interface SettingProviderInterface {
     void fingerprintCollect(String id);
 
     /**
+     * 指纹识别同步方法
+     */
+    void fingerprintRecognition();
+
+    /**
      * 指纹特征值入库（同步方法）
      * @param id 指纹id
      * @param feature 指纹特征值
