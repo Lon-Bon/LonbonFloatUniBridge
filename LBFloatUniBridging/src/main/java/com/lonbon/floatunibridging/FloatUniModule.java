@@ -644,14 +644,12 @@ public class FloatUniModule extends UniModule implements SettingProviderInterfac
                 return;
             }
             fingerprintService.stop();
-            fingerprintService.destroy();
         }
         uniJSCallback.invoke(jsonObject);
     }
     @UniJSMethod(uiThread = true)
     @Override
     public void fingerModuleStop() {
-        Log.d(TAG, "syncStopFinger: ");
         Log.d(TAG, "fingerModuleStop: ");
         if (fingerprintService == null){
             Log.d(TAG, "fingerModuleStop: fingerprintService is null !");
