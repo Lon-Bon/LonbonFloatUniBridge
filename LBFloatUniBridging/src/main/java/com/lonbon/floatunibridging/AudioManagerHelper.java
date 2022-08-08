@@ -168,4 +168,13 @@ public class AudioManagerHelper {
     public void setStreamMute(boolean isMute){
         audioManager.setStreamMute(NOW_AUDIO_TYPE,isMute);
     }
+    /**
+     * 设置静音
+     * @param volumeType 静音声音类型
+     *
+     * @param isMute 是否静音
+     */
+    public void setStreamMute(int volumeType,boolean isMute){
+        audioManager.setStreamMute(volumeType,isMute);
+    }
 }

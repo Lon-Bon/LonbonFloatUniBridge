@@ -177,6 +177,17 @@ public interface SettingProviderInterface {
     void setStreamVolumeTypeVoiceCall(int value);
     void getStreamVolumeTypeVoiceCall(UniJSCallback uniJSCallback);
 
+    /**
+     * 闹铃 4
+     * 媒体音量 3
+     * 铃声 2
+     * 系统音量 1
+     * 通话音量 0
+     * @param volumeType
+     * @param isMute
+     */
+    void setStreamMute(int volumeType,boolean isMute);
+
     /***************************************************************************/
     /**
      * 重启设备

@@ -644,6 +644,7 @@ public class FloatUniModule extends UniModule implements SettingProviderInterfac
                 return;
             }
             fingerprintService.stop();
+            fingerprintService.destroy();
         }
         uniJSCallback.invoke(jsonObject);
     }
@@ -989,6 +990,13 @@ public class FloatUniModule extends UniModule implements SettingProviderInterfac
         JSONObject jsonObject = new JSONObject();
         jsonObject.put("value",value);
         uniJSCallback.invoke(jsonObject);
+    }
+
+    @UniJSMethod(uiThread = true)
+    @Override
+    public void setStreamMute(int volumeType, boolean isMute){
+        AudioManagerHelper audioManagerHelper = new AudioManagerHelper(mUniSDKInstance.getContext());
+        audioManagerHelper.setStreamMute(volumeType,isMute);
     }
 
     @UniJSMethod(uiThread = true)
