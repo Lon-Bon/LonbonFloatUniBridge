@@ -95,6 +95,23 @@ public interface SettingProviderInterface {
     void setCompareFingerprintCallBack(UniJSCallback uniJSCallback);
 
 
+    /**
+     * 根据人员id清除本地指纹存储信息
+     * @param id String
+     */
+    void clearFingerprintById(String id);
+
+    /**
+     * 根据指纹特征值清除本地指纹存储信息
+     * @param feature String
+     */
+    void clearFingerprintByFeature(String feature);
+
+    /**
+     * 清空本地所有指纹存储信息
+     */
+    void clearAllFingerprint();
+
     /***************************************************************************/
 
     /**

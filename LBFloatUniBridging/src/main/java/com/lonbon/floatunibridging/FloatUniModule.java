@@ -742,6 +742,64 @@ public class FloatUniModule extends UniModule implements SettingProviderInterfac
             }
         });
     }
+
+    /**
+     * 根据人员id清除本地指纹存储信息
+     * @param id String
+     */
+
+    @UniJSMethod(uiThread = true)
+    @Override
+    public void clearFingerprintById(String id) {
+        if (!isConnect){
+            showToast();
+            return ;
+        }
+        Log.d(TAG, "setGetCompareFingerprintCallBack: ");
+        if (fingerprintService == null){
+            Log.d(TAG, "setCompareFingerprintCallBack: fingerprintService is null !");
+            return;
+        }
+
+        fingerprintService.clearFingerprintById(id);
+    }
+
+    /**
+     * 根据指纹特征值清除本地指纹存储信息
+     * @param feature String
+     */
+    @UniJSMethod(uiThread = true)
+    @Override
+    public void clearFingerprintByFeature(String feature) {
+        if (!isConnect){
+            showToast();
+            return ;
+        }
+        Log.d(TAG, "setGetCompareFingerprintCallBack: ");
+        if (fingerprintService == null){
+            Log.d(TAG, "setCompareFingerprintCallBack: fingerprintService is null !");
+            return;
+        }
+        fingerprintService.clearFingerprintByFeature(feature);
+    }
+
+    /**
+     * 清空本地所有指纹存储信息
+     */
+    @UniJSMethod(uiThread = true)
+    @Override
+    public void clearAllFingerprint() {
+        if (!isConnect){
+            showToast();
+            return ;
+        }
+        Log.d(TAG, "setGetCompareFingerprintCallBack: ");
+        if (fingerprintService == null){
+            Log.d(TAG, "setCompareFingerprintCallBack: fingerprintService is null !");
+            return;
+        }
+        fingerprintService.clearAllFingerprint();
+    }
     /**********************************************************************************/
 
 
