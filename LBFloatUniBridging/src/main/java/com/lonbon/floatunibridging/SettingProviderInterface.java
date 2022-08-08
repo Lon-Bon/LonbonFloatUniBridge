@@ -117,6 +117,11 @@ public interface SettingProviderInterface {
      */
     void clearAllFingerprint();
 
+    /**
+     * 指纹模块停止工作：模块断电
+     */
+    void fingerModuleStop();
+
     /***************************************************************************/
 
     /**

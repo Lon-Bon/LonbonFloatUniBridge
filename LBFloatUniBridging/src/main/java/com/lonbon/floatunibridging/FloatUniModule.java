@@ -648,6 +648,17 @@ public class FloatUniModule extends UniModule implements SettingProviderInterfac
         }
         uniJSCallback.invoke(jsonObject);
     }
+    @UniJSMethod(uiThread = true)
+    @Override
+    public void fingerModuleStop() {
+        Log.d(TAG, "syncStopFinger: ");
+        Log.d(TAG, "fingerModuleStop: ");
+        if (fingerprintService == null){
+            Log.d(TAG, "fingerModuleStop: fingerprintService is null !");
+            return;
+        }
+        fingerprintService.destroy();
+    }
 
     @UniJSMethod(uiThread = true)
     @Override
@@ -663,9 +674,9 @@ public class FloatUniModule extends UniModule implements SettingProviderInterfac
     @UniJSMethod(uiThread = true)
     @Override
     public void fingerprintRecognition() {
-        Log.d(TAG, "fingerprintCollect: ");
+        Log.d(TAG, "fingerprintRecognition: ");
         if (fingerprintService == null){
-            Log.d(TAG, "fingerprintCollect: fingerprintService is null !");
+            Log.d(TAG, "fingerprintRecognition: fingerprintService is null !");
             return;
         }
         fingerprintService.fingerprintRecognition();
