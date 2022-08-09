@@ -548,11 +548,12 @@ public class FloatUniModule extends UniModule implements SettingProviderInterfac
             showToast();
             jsonObject.put("code",-1);
         }else {
-            jsonObject.put("code",0);
             if (swingCardService == null){
                 Log.d(TAG, "syncStartCard: swingCardService is null !");
+                jsonObject.put("code",-1);
                 return;
             }
+            jsonObject.put("code",0);
             swingCardService.start();
         }
         uniJSCallback.invoke(jsonObject);
@@ -570,11 +571,13 @@ public class FloatUniModule extends UniModule implements SettingProviderInterfac
             showToast();
             jsonObject.put("code",-1);
         }else {
-            jsonObject.put("code",0);
+
             if (swingCardService == null){
                 Log.d(TAG, "syncStopCard: swingCardService is null !");
+                jsonObject.put("code",-1);
                 return;
             }
+            jsonObject.put("code",0);
             swingCardService.stop();
         }
         uniJSCallback.invoke(jsonObject);
@@ -618,11 +621,12 @@ public class FloatUniModule extends UniModule implements SettingProviderInterfac
             showToast();
             jsonObject.put("code",-1);
         }else {
-            jsonObject.put("code",0);
             if (fingerprintService == null){
                 Log.d(TAG, "syncStartFinger: fingerprintService is null !");
+                jsonObject.put("code",-1);
                 return;
             }
+            jsonObject.put("code",0);
             fingerprintService.init();
         }
         uniJSCallback.invoke(jsonObject);
@@ -638,11 +642,12 @@ public class FloatUniModule extends UniModule implements SettingProviderInterfac
             showToast();
             jsonObject.put("code",-1);
         }else {
-            jsonObject.put("code",0);
             if (fingerprintService == null){
                 Log.d(TAG, "syncStopFinger: fingerprintService is null !");
+                jsonObject.put("code",-1);
                 return;
             }
+            jsonObject.put("code",0);
             fingerprintService.stop();
         }
         uniJSCallback.invoke(jsonObject);
@@ -734,6 +739,8 @@ public class FloatUniModule extends UniModule implements SettingProviderInterfac
             @Override
             public void onData(CallbackData<FingerprintLeftNumResult> callbackData) {
                 JSONObject jsonObject = new JSONObject();
+                jsonObject.put("code",String.valueOf(callbackData.getCode()));
+                jsonObject.put("msg",callbackData.getMsg());
                 jsonObject.put("leftCounts",String.valueOf(callbackData.getData().getLeftCounts()));
                 jsonObject.put("fingerprintBase64Str",callbackData.getData().getFingerprintBase64Str());
                 uniJSCallback.invokeAndKeepAlive(jsonObject);
@@ -757,6 +764,8 @@ public class FloatUniModule extends UniModule implements SettingProviderInterfac
             @Override
             public void onData(CallbackData<FingerprintCompareResult> callbackData) {
                 JSONObject jsonObject = new JSONObject();
+                jsonObject.put("code",String.valueOf(callbackData.getCode()));
+                jsonObject.put("msg",callbackData.getMsg());
                 jsonObject.put("id",callbackData.getData().getId());
                 jsonObject.put("feature",callbackData.getData().getFeature());
                 jsonObject.put("fingerprintBase64Str",callbackData.getData().getFingerprintBase64Str());
@@ -834,11 +843,13 @@ public class FloatUniModule extends UniModule implements SettingProviderInterfac
             showToast();
             jsonObject.put("code",-1);
         }else {
-            jsonObject.put("code",0);
+
             if (temperatureMeasurementService == null){
                 Log.d(TAG, "syncStartTemperature: temperatureMeasurementService is null !");
+                jsonObject.put("code",-1);
                 return;
             }
+            jsonObject.put("code",0);
             temperatureMeasurementService.start();
         }
         uniJSCallback.invoke(jsonObject);
@@ -854,11 +865,13 @@ public class FloatUniModule extends UniModule implements SettingProviderInterfac
             showToast();
             jsonObject.put("code",-1);
         }else {
-            jsonObject.put("code",0);
+
             if (temperatureMeasurementService == null){
                 Log.d(TAG, "syncStopTemperature: temperatureMeasurementService is null !");
+                jsonObject.put("code",-1);
                 return;
             }
+            jsonObject.put("code",0);
             temperatureMeasurementService.stop();
         }
         uniJSCallback.invoke(jsonObject);
