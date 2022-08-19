@@ -99,11 +99,11 @@ public class FloatUniModule extends UniModule implements SettingProviderInterfac
 
     //run ui thread
     @UniJSMethod(uiThread = true)
-    public void printClassNameTest(UniJSCallback uniJsCallback){
-        Log.d(TAG, "printClassNameTest");
+    public void printDeviceInfoTest(UniJSCallback uniJsCallback){
+        Log.d(TAG, "printDeviceInfoTest");
         Toast.makeText(mUniSDKInstance.getContext(), TAG, Toast.LENGTH_SHORT).show();
         if (intercomService == null){
-            Log.d(TAG, "getCurrentDeviceInfo: intercomService is null !");
+            Log.d(TAG, "printDeviceInfoTest: intercomService is null !");
             return;
         }
         intercomService.getCurrentDeviceInfo(new Result<LocalDeviceInfo>() {
@@ -142,11 +142,11 @@ public class FloatUniModule extends UniModule implements SettingProviderInterfac
 
     //run JS thread
     @UniJSMethod(uiThread = true)
-    public void syncFunc(String methodName,UniJSCallback uniJsCallback){
-        Log.d(TAG, "syncFunc: "+methodName);
+    public void printInputTest(String methodName,UniJSCallback uniJsCallback){
+        Log.d(TAG, "printInputTest: "+methodName);
         Toast.makeText(mUniSDKInstance.getContext(), methodName, Toast.LENGTH_SHORT).show();
         JSONObject jsonObject = new JSONObject();
-        jsonObject.put("syncFunc",methodName);
+        jsonObject.put("printInputTest",methodName);
         uniJsCallback.invoke(jsonObject);
     }
     /*********************************************/
@@ -159,7 +159,6 @@ public class FloatUniModule extends UniModule implements SettingProviderInterfac
             showToast();
             return ;
         }
-        Log.d(TAG, "setTalkViewPosition: ");
         if (intercomService == null){
             Log.d(TAG, "setTalkViewPosition: intercomService is null !");
             return;
@@ -530,6 +529,45 @@ public class FloatUniModule extends UniModule implements SettingProviderInterfac
         }
         intercomService.oneKeyCall();
 
+    }
+
+    @Override
+    public void setLocalVideoViewPosition(int left, int top, int width, int height) {
+        if (!isConnect){
+            showToast();
+            return ;
+        }
+        if (intercomService == null){
+            Log.d(TAG, "setLocalVideoViewPosition: intercomService is null !");
+            return;
+        }
+        intercomService.setPreViewPosition(left,top,width,height);
+    }
+
+    @Override
+    public void hideLocalPreView(Boolean hide) {
+        if (!isConnect){
+            showToast();
+            return ;
+        }
+        if (intercomService == null){
+            Log.d(TAG, "hideLocalPreView: intercomService is null !");
+            return;
+        }
+        intercomService.hidePreView(hide);
+    }
+
+    @Override
+    public void setExtMicEna(Boolean enable) {
+        if (!isConnect){
+            showToast();
+            return ;
+        }
+        if (intercomService == null){
+            Log.d(TAG, "setExtMicEna: intercomService is null !");
+            return;
+        }
+        intercomService.setMicEna(enable);
     }
 
 

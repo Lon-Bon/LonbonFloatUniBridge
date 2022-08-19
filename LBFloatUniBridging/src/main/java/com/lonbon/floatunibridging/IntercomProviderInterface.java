@@ -158,4 +158,24 @@ public interface IntercomProviderInterface {
      */
     public void oneKeyCall();
 
+    /**
+     * 设置本地预览视频框显示位置（单位px）
+     * @param left  视频框离屏幕左间距
+     * @param top 视频框离屏幕上间距
+     * @param width 视频框宽
+     * @param height 视频框高
+     */
+    public void setLocalVideoViewPosition(int left,int top , int width ,int height);
+
+    /**
+     * 设置本地预览视频隐藏
+     * @param hide
+     */
+    public void hideLocalPreView(Boolean hide);
+
+    /**
+     * 设置外接咪头使能
+     * @param enable
+     */
+    public void setExtMicEna(Boolean enable);
 }
