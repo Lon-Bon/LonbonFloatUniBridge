@@ -184,4 +184,42 @@ public interface IntercomProviderInterface {
      * @param isOpen
      */
     void openLocalCamera(Boolean isOpen);
+
+    /**
+     * 拍照初始化
+     * @param isOpen
+     */
+    void initFrame(Boolean isOpen);
+
+    /**
+     * 设置拍照的图像宽高参数
+     * @param width
+     * @param height
+     */
+    void setViewWidthHeight(int width,int height);
+
+    /**
+     * 开启启动发送数据
+     */
+    void startTakeFrame();
+    /**
+     * 停止采集数据，包括
+     */
+    void stopTakeFrame();
+
+    /**
+     * 拍照
+     */
+    void takePicture();
+
+    /**
+     * 取摄像头数据
+     */
+    void takeFrame();
+
+    void takePictureCallBack(UniJSCallback uniJsCallback);
+
+    void takeFrameCallBack(UniJSCallback uniJsCallback);
+
+
 }

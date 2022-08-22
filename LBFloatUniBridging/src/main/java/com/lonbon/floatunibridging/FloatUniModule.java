@@ -3,6 +3,9 @@ package com.lonbon.floatunibridging;
 import android.util.Log;
 import android.widget.Toast;
 
+import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
+
 import com.alibaba.fastjson.JSONObject;
 import com.google.gson.Gson;
 import com.lb.extend.common.CallbackData;
@@ -24,8 +27,13 @@ import com.lb.extend.service.SystemSetService;
 import com.zclever.ipc.core.Config;
 import com.zclever.ipc.core.IpcManager;
 import com.zclever.ipc.core.Result;
+import com.zclever.ipc.core.client.FrameType;
+import com.zclever.ipc.core.client.IPictureCallBack;
+import com.zclever.ipc.core.client.IPreviewCallBack;
+import com.zclever.ipc.core.client.PictureFormat;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 
 import javax.security.auth.callback.Callback;
 
@@ -68,7 +76,7 @@ public class FloatUniModule extends UniModule implements SettingProviderInterfac
     public void initIPCManager(UniJSCallback uniJsCallback){
 
 //        //首先配置开启媒体服务
-//        IpcManager.INSTANCE.config(Config.Companion.builder().configOpenMedia(true).build());
+        IpcManager.INSTANCE.config(Config.Companion.builder().configOpenMedia(true).build());
         //传入上下文
         IpcManager.INSTANCE.init(mUniSDKInstance.getContext());
         //连接服务端，传入的是服务端的包名
@@ -586,6 +594,112 @@ public class FloatUniModule extends UniModule implements SettingProviderInterfac
             return;
         }
         intercomService.openLocalCamera(isOpen);
+    }
+
+    @UniJSMethod(uiThread = true)
+    @Override
+    public void initFrame(Boolean isOpen) {
+        if (!isConnect){
+            showToast();
+            return ;
+        }
+        if (intercomService == null){
+            Log.d(TAG, "openLocalCamera: intercomService is null !");
+            return;
+        }
+        intercomService.initFrame();
+    }
+
+    @UniJSMethod(uiThread = true)
+    @Override
+    public void setViewWidthHeight(int width, int height) {
+        if (!isConnect){
+            showToast();
+            return ;
+        }
+        if (intercomService == null){
+            Log.d(TAG, "openLocalCamera: intercomService is null !");
+            return;
+        }
+        intercomService.setViewWidthHeight(width,height);
+    }
+
+    @UniJSMethod(uiThread = true)
+    @Override
+    public void startTakeFrame() {
+        if (!isConnect){
+            showToast();
+            return ;
+        }
+        if (intercomService == null){
+            Log.d(TAG, "startTakeFrame: intercomService is null !");
+            return;
+        }
+        intercomService.startTakeFrame();
+    }
+
+    @UniJSMethod(uiThread = true)
+    @Override
+    public void stopTakeFrame() {
+        if (!isConnect){
+            showToast();
+            return ;
+        }
+       IpcManager.INSTANCE.getMediaService().stopTakeFrame();
+    }
+
+    @UniJSMethod(uiThread = true)
+    @Override
+    public void takePicture() {
+        if (!isConnect){
+            showToast();
+            return ;
+        }
+        IpcManager.INSTANCE.getMediaService().takePicture(PictureFormat.JPEG);
+    }
+
+    @UniJSMethod(uiThread = true)
+    @Override
+    public void takeFrame() {
+        if (!isConnect){
+            showToast();
+            return ;
+        }
+
+        IpcManager.INSTANCE.getMediaService().takeFrame(FrameType.NV21);
+    }
+
+    @UniJSMethod(uiThread = true)
+    @Override
+    public void takePictureCallBack(UniJSCallback uniJsCallback) {
+        IpcManager.INSTANCE.getMediaService().setPictureCallBack(new IPictureCallBack() {
+            @Override
+            public void onPictureTaken(@Nullable byte[] bytes, int i, int i1, @NonNull PictureFormat pictureFormat) {
+                Log.i(TAG, "takeFrameCallBack: "+Arrays.toString(bytes));
+                Log.i(TAG, "takeFrameCallBack: "+pictureFormat);
+                JSONObject jsonObject = new JSONObject();
+                jsonObject.put("bytes",bytes);
+                jsonObject.put("pictureFormat",pictureFormat);
+                uniJsCallback.invokeAndKeepAlive(jsonObject);
+            }
+        });
+
+    }
+
+    @UniJSMethod(uiThread = true)
+    @Override
+    public void takeFrameCallBack(UniJSCallback uniJsCallback) {
+        IpcManager.INSTANCE.getMediaService().setPreviewCallBack(new IPreviewCallBack() {
+            @Override
+            public void onPreviewFrame(@Nullable byte[] bytes, int i, int i1, @NonNull FrameType frameType) {
+                Log.i(TAG, "takeFrameCallBack: "+ Arrays.toString(bytes));
+                Log.i(TAG, "takeFrameCallBack: "+frameType);
+                JSONObject jsonObject = new JSONObject();
+                jsonObject.put("bytes",bytes);
+                jsonObject.put("frameType",frameType);
+                uniJsCallback.invokeAndKeepAlive(jsonObject);
+            }
+        });
     }
 
 
