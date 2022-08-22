@@ -31,7 +31,7 @@ public interface IntercomProviderInterface {
      * @param width 对讲页面宽
      * @param height 对讲页面高
      */
-    public void setTalkViewPosition(int left,int top , int width ,int height);
+    void setTalkViewPosition(int left, int top, int width, int height);
 
     /**
      * 门灯控制
@@ -83,7 +83,7 @@ public interface IntercomProviderInterface {
      * @param slaveNum 分机号 最多三位
      * @param devRegType 设备注册类型 0，主机或这分机，8门口机
      */
-    public void nativeCall(int areaId , int masterNum ,int slaveNum ,int devRegType);
+    void nativeCall(int areaId, int masterNum, int slaveNum, int devRegType);
 
     /**
      * 接听对讲设备
@@ -92,7 +92,7 @@ public interface IntercomProviderInterface {
      * @param slaveNum 分机号 最多三位
      * @param devRegType 设备注册类型 0，主机或这分机，8门口机
      */
-    public void nativeAnswer(int areaId , int masterNum ,int slaveNum ,int devRegType);
+    void nativeAnswer(int areaId, int masterNum, int slaveNum, int devRegType);
 
     /**
      * 挂断对讲设备
@@ -101,7 +101,7 @@ public interface IntercomProviderInterface {
      * @param slaveNum 分机号 最多三位
      * @param devRegType 设备注册类型 0，主机或这分机，8门口机
      */
-    public void nativeHangup(int areaId , int masterNum ,int slaveNum ,int devRegType);
+    void nativeHangup(int areaId, int masterNum, int slaveNum, int devRegType);
 
     /**
      * 开关电控锁
@@ -109,14 +109,14 @@ public interface IntercomProviderInterface {
      * @param num 电控锁序号
      * @param open 开关 0关 1开
      */
-    public void  openLockCtrl(int num, int open);
+    void  openLockCtrl(int num, int open);
 
     /**
      * 获取当前设备信息（包含设备编号）
      *
      * @param uniJsCallback 设备信息
      */
-    public void getCurrentDeviceInfo(UniJSCallback uniJsCallback);
+    void getCurrentDeviceInfo(UniJSCallback uniJsCallback);
 
     /**
      * 设备对讲事件回调接口
@@ -124,39 +124,39 @@ public interface IntercomProviderInterface {
      * 回调当前设备对讲事件
      * @param uniJsCallback 返回状态变化的设备
      */
-    public void talkEventCallback(UniJSCallback uniJsCallback);
+    void talkEventCallback(UniJSCallback uniJsCallback);
 
     /**
      * 设备在线回调接口
      *
      * @param uniJsCallback 返回状态变为在线的设备
      */
-    public void onDeviceOnLine(UniJSCallback uniJsCallback);
+    void onDeviceOnLine(UniJSCallback uniJsCallback);
 
     /**
      * 设备离线回调接口
      *
      * @param uniJsCallback 返回态变为离线的设备
      */
-    public void onDeviceOffLine(UniJSCallback uniJsCallback);
+    void onDeviceOffLine(UniJSCallback uniJsCallback);
 
     /**
      * 监听转对讲
      *
      */
-    public void listenToTalk();
+    void listenToTalk();
 
     /**
      * 设置视频隐藏
      *
      * @param hide 隐藏视频 true隐藏 false显示
      */
-    public void hideTalkView(Boolean hide);
+    void hideTalkView(Boolean hide);
 
     /**
      * 一键呼叫
      */
-    public void oneKeyCall();
+    void oneKeyCall();
 
     /**
      * 设置本地预览视频框显示位置（单位px）
@@ -165,17 +165,23 @@ public interface IntercomProviderInterface {
      * @param width 视频框宽
      * @param height 视频框高
      */
-    public void setLocalVideoViewPosition(int left,int top , int width ,int height);
+    void setLocalVideoViewPosition(int left, int top, int width, int height);
 
     /**
      * 设置本地预览视频隐藏
      * @param hide
      */
-    public void hideLocalPreView(Boolean hide);
+    void hideLocalPreView(Boolean hide);
 
     /**
      * 设置外接咪头使能
      * @param enable
      */
-    public void setExtMicEna(Boolean enable);
+    void setExtMicEna(Boolean enable);
+
+    /**
+     * 开启本地摄像头
+     * @param isOpen
+     */
+    void openLocalCamera(Boolean isOpen);
 }

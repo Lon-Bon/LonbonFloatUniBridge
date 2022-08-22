@@ -21,6 +21,7 @@ import com.lb.extend.security.setting.SystemSettingService;
 import com.lb.extend.security.temperature.TemperatureData;
 import com.lb.extend.security.temperature.TemperatureMeasurementService;
 import com.lb.extend.service.SystemSetService;
+import com.zclever.ipc.core.Config;
 import com.zclever.ipc.core.IpcManager;
 import com.zclever.ipc.core.Result;
 
@@ -65,6 +66,9 @@ public class FloatUniModule extends UniModule implements SettingProviderInterfac
 
     @UniJSMethod(uiThread = true)
     public void initIPCManager(UniJSCallback uniJsCallback){
+
+//        //首先配置开启媒体服务
+//        IpcManager.INSTANCE.config(Config.Companion.builder().configOpenMedia(true).build());
         //传入上下文
         IpcManager.INSTANCE.init(mUniSDKInstance.getContext());
         //连接服务端，传入的是服务端的包名
@@ -530,7 +534,7 @@ public class FloatUniModule extends UniModule implements SettingProviderInterfac
         intercomService.oneKeyCall();
 
     }
-
+    @UniJSMethod(uiThread = true)
     @Override
     public void setLocalVideoViewPosition(int left, int top, int width, int height) {
         if (!isConnect){
@@ -543,7 +547,7 @@ public class FloatUniModule extends UniModule implements SettingProviderInterfac
         }
         intercomService.setPreViewPosition(left,top,width,height);
     }
-
+    @UniJSMethod(uiThread = true)
     @Override
     public void hideLocalPreView(Boolean hide) {
         if (!isConnect){
@@ -556,7 +560,7 @@ public class FloatUniModule extends UniModule implements SettingProviderInterfac
         }
         intercomService.hidePreView(hide);
     }
-
+    @UniJSMethod(uiThread = true)
     @Override
     public void setExtMicEna(Boolean enable) {
         if (!isConnect){
@@ -568,6 +572,20 @@ public class FloatUniModule extends UniModule implements SettingProviderInterfac
             return;
         }
         intercomService.setMicEna(enable);
+    }
+
+    @UniJSMethod(uiThread = true)
+    @Override
+    public void openLocalCamera(Boolean isOpen) {
+        if (!isConnect){
+            showToast();
+            return ;
+        }
+        if (intercomService == null){
+            Log.d(TAG, "openLocalCamera: intercomService is null !");
+            return;
+        }
+        intercomService.openLocalCamera(isOpen);
     }
 
 
@@ -754,7 +772,7 @@ public class FloatUniModule extends UniModule implements SettingProviderInterfac
                 JSONObject jsonObject = new JSONObject();
                 jsonObject.put("code",String.valueOf(callbackData.getCode()));
                 jsonObject.put("msg",callbackData.getMsg());
-                jsonObject.put("id",String.valueOf(callbackData.getData().getId()));
+                jsonObject.put("id", callbackData.getData().getId());
                 jsonObject.put("feature",callbackData.getData().getFeature());
                 uniJSCallback.invokeAndKeepAlive(jsonObject);
             }
@@ -935,7 +953,7 @@ public class FloatUniModule extends UniModule implements SettingProviderInterfac
                 jsonObject.put("code",String.valueOf(callbackData.getCode()));
                 jsonObject.put("msg",callbackData.getMsg());
                 jsonObject.put("temperature",String.valueOf(callbackData.getData().getTemperature()));
-                Log.d(TAG, "setTemperatureDataCallBack: "+jsonObject.toString());
+                Log.d(TAG, "setTemperatureDataCallBack: "+ jsonObject);
                 uniJSCallback.invokeAndKeepAlive(jsonObject);
             }
         });

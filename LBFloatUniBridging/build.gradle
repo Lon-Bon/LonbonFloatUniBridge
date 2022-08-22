@@ -51,4 +51,5 @@ dependencies {
 
     compileOnly "com.alibaba:fastjson:$rootProject.fastjsonVersion"
     implementation "com.github.Lon-Bon:lb-extend-service:develop-SNAPSHOT"
+//    implementation "com.github.Lon-Bon:lb-extend-service:ac83af248f"
 }
