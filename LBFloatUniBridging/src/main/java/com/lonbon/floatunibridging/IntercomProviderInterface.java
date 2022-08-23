@@ -187,9 +187,8 @@ public interface IntercomProviderInterface {
 
     /**
      * 拍照初始化
-     * @param isOpen
      */
-    void initFrame(Boolean isOpen);
+    void initFrame();
 
     /**
      * 设置拍照的图像宽高参数

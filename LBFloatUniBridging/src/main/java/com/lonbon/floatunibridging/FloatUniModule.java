@@ -598,7 +598,7 @@ public class FloatUniModule extends UniModule implements SettingProviderInterfac
 
     @UniJSMethod(uiThread = true)
     @Override
-    public void initFrame(Boolean isOpen) {
+    public void initFrame() {
         if (!isConnect){
             showToast();
             return ;
