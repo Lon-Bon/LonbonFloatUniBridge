@@ -686,10 +686,10 @@ public class FloatUniModule extends UniModule implements SettingProviderInterfac
         IpcManager.INSTANCE.getMediaService().setPictureCallBack(new IPictureCallBack() {
             @Override
             public void onPictureTaken(@Nullable byte[] bytes, int i, int i1, @NonNull PictureFormat pictureFormat) {
-                Log.i(TAG, "takeFrameCallBack: "+Arrays.toString(bytes));
-                Log.i(TAG, "takeFrameCallBack: "+pictureFormat);
+                Log.i(TAG, "takePictureCallBack: "+Arrays.toString(bytes));
+                Log.i(TAG, "takePictureCallBack: "+pictureFormat);
                 JSONObject jsonObject = new JSONObject();
-                jsonObject.put("bytes",bytes);
+                jsonObject.put("bytes",getBitmapBase64(bytes,width,height));
                 jsonObject.put("pictureFormat",pictureFormat);
                 uniJsCallback.invokeAndKeepAlive(jsonObject);
             }
@@ -713,6 +713,13 @@ public class FloatUniModule extends UniModule implements SettingProviderInterfac
         });
     }
 
+    /**
+     * 图片转换为Base64字符串
+     * @param curFaceNV21Data
+     * @param width
+     * @param height
+     * @return
+     */
     private String getBitmapBase64(byte[] curFaceNV21Data, int width, int height){
         //encode image to base64 string
         ByteArrayOutputStream baos = new ByteArrayOutputStream();
