@@ -4,6 +4,7 @@ import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
 import android.content.pm.PackageManager;
+import android.util.Log;
 
 /**
  * *****************************************************************************
@@ -22,6 +23,7 @@ import android.content.pm.PackageManager;
 public class AppStartReceiver extends BroadcastReceiver {
     @Override
     public void onReceive(Context context, Intent intent) {
+        Log.d("AppStartReceiver", "onReceive: "+intent.toString());
         //本地测试包名
         startActivity(context,"uni.UNI8EA39EE");
         //客户应用包名

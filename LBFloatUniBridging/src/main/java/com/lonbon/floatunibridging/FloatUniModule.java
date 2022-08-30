@@ -1,5 +1,11 @@
 package com.lonbon.floatunibridging;
 
+import android.graphics.Bitmap;
+import android.graphics.BitmapFactory;
+import android.graphics.ImageFormat;
+import android.graphics.Rect;
+import android.graphics.YuvImage;
+import android.util.Base64;
 import android.util.Log;
 import android.widget.Toast;
 
@@ -32,6 +38,7 @@ import com.zclever.ipc.core.client.IPictureCallBack;
 import com.zclever.ipc.core.client.IPreviewCallBack;
 import com.zclever.ipc.core.client.PictureFormat;
 
+import java.io.ByteArrayOutputStream;
 import java.util.ArrayList;
 import java.util.Arrays;
 
@@ -610,6 +617,8 @@ public class FloatUniModule extends UniModule implements SettingProviderInterfac
         intercomService.initFrame();
     }
 
+    private int width = 0;
+    private int height = 0;
     @UniJSMethod(uiThread = true)
     @Override
     public void setViewWidthHeight(int width, int height) {
@@ -621,6 +630,8 @@ public class FloatUniModule extends UniModule implements SettingProviderInterfac
             Log.d(TAG, "openLocalCamera: intercomService is null !");
             return;
         }
+        this.width = width;
+        this.height = height;
         intercomService.setViewWidthHeight(width,height);
     }
 
@@ -695,11 +706,47 @@ public class FloatUniModule extends UniModule implements SettingProviderInterfac
                 Log.i(TAG, "takeFrameCallBack: "+ Arrays.toString(bytes));
                 Log.i(TAG, "takeFrameCallBack: "+frameType);
                 JSONObject jsonObject = new JSONObject();
-                jsonObject.put("bytes",bytes);
+                jsonObject.put("bytes",getBitmapBase64(bytes,width,height));
                 jsonObject.put("frameType",frameType);
                 uniJsCallback.invokeAndKeepAlive(jsonObject);
             }
         });
+    }
+
+    private String getBitmapBase64(byte[] curFaceNV21Data, int width, int height){
+        //encode image to base64 string
+        ByteArrayOutputStream baos = new ByteArrayOutputStream();
+        Bitmap bitmap = getBitmapFromYuv(curFaceNV21Data,width,height);
+        bitmap.compress(Bitmap.CompressFormat.JPEG, 100, baos);
+        byte[] imageBytes = baos.toByteArray();
+        return Base64.encodeToString(imageBytes, Base64.DEFAULT);
+    }
+
+    /**
+     * @param curFaceNV21Data
+     * @param width
+     * @param height
+     * @return
+     */
+    public Bitmap getBitmapFromYuv(byte[] curFaceNV21Data, int width, int height) {
+
+        Bitmap bmp = null;
+
+        try {
+            YuvImage image = new YuvImage(curFaceNV21Data, ImageFormat.NV21, width, height, null);
+            if (image != null) {
+                ByteArrayOutputStream stream = new ByteArrayOutputStream();
+                image.compressToJpeg(new Rect(0, 0, width, height), 80, stream);
+
+                bmp = BitmapFactory.decodeByteArray(stream.toByteArray(), 0, stream.size());
+                //TODO：此处可以对位图进行处理，如显示，保存等
+
+                stream.close();
+            }
+        } catch (Exception ex) {
+            ex.printStackTrace();
+        }
+        return bmp;
     }
 
 
