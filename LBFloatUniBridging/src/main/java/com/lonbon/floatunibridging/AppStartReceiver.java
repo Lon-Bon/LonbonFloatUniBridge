@@ -31,7 +31,7 @@ public class AppStartReceiver extends BroadcastReceiver {
     public void onReceive(Context context, Intent intent) {
         Log.d("AppStartReceiver", "onReceive: "+intent.toString());
         //客户应用包名
-        startActivity(context,"uni.UNIE9B1944");
+//        startActivity(context,"uni.UNIE9B1944");
         //本地测试包名
         testStartActivity(context,"uni.UNI8EA39EE");
     }
@@ -47,9 +47,14 @@ public class AppStartReceiver extends BroadcastReceiver {
             return;
         }
         Log.d(TAG, "startActivity: start process "+packageName);
-        PackageManager packageManager = context.getPackageManager();
-        Intent it = packageManager.getLaunchIntentForPackage(packageName);
-        context.startActivity(it);
+        try {
+            PackageManager packageManager = context.getPackageManager();
+            Intent it = packageManager.getLaunchIntentForPackage(packageName);
+            context.startActivity(it);
+        }catch (Exception e){
+            Log.d(TAG, "startActivity: "+e.toString());
+        }
+
     }
 
     private void testStartActivity(Context context,String packageName){
