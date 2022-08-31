@@ -30,10 +30,12 @@ public class AppStartReceiver extends BroadcastReceiver {
     @Override
     public void onReceive(Context context, Intent intent) {
         Log.d("AppStartReceiver", "onReceive: "+intent.toString());
+        Log.d("AppStartReceiver", "onReceive: "+intent.getComponent().flattenToShortString().split("/")[0]);
+        String packName = intent.getComponent().flattenToShortString().split("/")[0];
         //客户应用包名
 //        startActivity(context,"uni.UNIE9B1944");
-        //本地测试包名
-        testStartActivity(context,"uni.UNI8EA39EE");
+        startActivity(context,packName);
+
     }
 
     /**
@@ -42,8 +44,8 @@ public class AppStartReceiver extends BroadcastReceiver {
      * @param packageName
      */
     private void startActivity(Context context,String packageName){
-        if (isRunningAppProcesses(context,packageName)){
-            Log.d(TAG, "startActivity: is running "+packageName);
+        if (isRunningApp(context,packageName)){
+            Log.d(TAG, "startActivity: app is running "+packageName);
             return;
         }
         Log.d(TAG, "startActivity: start process "+packageName);
@@ -56,11 +58,8 @@ public class AppStartReceiver extends BroadcastReceiver {
         }
 
     }
-
-    private void testStartActivity(Context context,String packageName){
-        Log.d(TAG, "testStartActivity: "+isRunningAppProcesses(context,packageName));
-        Log.d(TAG, "testStartActivity: "+isAppRunning(context,packageName));
-        Log.d(TAG, "testStartActivity: "+isForeground(context,"uni.UNI8EA39EE/io.dcloud.PandoraEntry"));
+    private boolean isRunningApp(Context context,String packageName){
+        return (isRunningAppProcesses(context,packageName) || isForeground(context,"io.dcloud.PandoraEntryActivity"));
     }
 
     public boolean isRunningAppProcesses(Context context, String packageName) {
@@ -79,21 +78,6 @@ public class AppStartReceiver extends BroadcastReceiver {
         return false;
     }
 
-    //只需要获取当前的上下文，即可判断应用是否在前台
-    public boolean isAppRunning(Context context, String packageName) {
-        ActivityManager activityManager = (ActivityManager) context.getSystemService(Context.ACTIVITY_SERVICE);
-        List<ActivityManager.RunningTaskInfo> list = activityManager.getRunningTasks(1);
-        if(list.size() <= 0) {
-            return false;
-        }
-        Log.d(TAG,"classname is "+list.get(0).topActivity.getClassName());
-        if( list.get(0).topActivity.getClassName().equals(packageName) ) {
-            return true;
-        } else {
-            return false;
-        }
-    }
-
     /**
      * 判断某个Activity 界面是否在前台
      * @param context
@@ -106,7 +90,7 @@ public class AppStartReceiver extends BroadcastReceiver {
         }
         ActivityManager am = (ActivityManager) context.getSystemService(Context.ACTIVITY_SERVICE);
         List<ActivityManager.RunningTaskInfo> list = am.getRunningTasks(1);
-        if (list != null && list.size() > 0) {
+        if (list != null && !list.isEmpty()) {
             ComponentName cpn = list.get(0).topActivity;
             if (className.equals(cpn.getClassName())) {
                 return true;
