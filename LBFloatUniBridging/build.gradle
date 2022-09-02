@@ -50,6 +50,6 @@ dependencies {
     androidTestImplementation "androidx.test.espresso:espresso-core:$rootProject.espressocoreVersion"
 
     compileOnly "com.alibaba:fastjson:$rootProject.fastjsonVersion"
-//    implementation "com.github.Lon-Bon:lb-extend-service:develop-SNAPSHOT"
-    implementation "com.github.Lon-Bon:lb-extend-service:45ed67c369"
+    implementation "com.github.Lon-Bon:lb-extend-service:develop-SNAPSHOT"
+//    implementation "com.github.Lon-Bon:lb-extend-service:45ed67c369"
 }

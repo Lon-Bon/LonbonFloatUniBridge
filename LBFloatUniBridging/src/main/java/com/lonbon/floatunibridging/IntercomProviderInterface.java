@@ -202,7 +202,7 @@ public interface IntercomProviderInterface {
      */
     void startTakeFrame();
     /**
-     * 停止采集数据，包括
+     * 停止采集数据
      */
     void stopTakeFrame();
 

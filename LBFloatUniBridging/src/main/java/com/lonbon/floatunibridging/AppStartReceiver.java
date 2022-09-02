@@ -24,16 +24,16 @@ import java.util.List;
  * @Author： neo
  * @Create: 2022/8/30
  * @Describe:
+ * io.dcloud.PandoraEntryActivity ： Uniapp 固定启动 activity
+ * 双重保险，设置 io.dcloud.PandoraEntryActivity检测
  */
 public class AppStartReceiver extends BroadcastReceiver {
     private String TAG = "AppStartReceiver";
     @Override
     public void onReceive(Context context, Intent intent) {
         Log.d("AppStartReceiver", "onReceive: "+intent.toString());
-        Log.d("AppStartReceiver", "onReceive: "+intent.getComponent().flattenToShortString().split("/")[0]);
         String packName = intent.getComponent().flattenToShortString().split("/")[0];
-        //客户应用包名
-//        startActivity(context,"uni.UNIE9B1944");
+        Log.d("AppStartReceiver", "onReceive: "+packName);
         startActivity(context,packName);
 
     }
@@ -48,7 +48,6 @@ public class AppStartReceiver extends BroadcastReceiver {
             Log.d(TAG, "startActivity: app is running "+packageName);
             return;
         }
-        Log.d(TAG, "startActivity: start process "+packageName);
         try {
             PackageManager packageManager = context.getPackageManager();
             Intent it = packageManager.getLaunchIntentForPackage(packageName);

@@ -204,6 +204,12 @@ public interface SettingProviderInterface {
      */
     void rebootSystem();
 
+    /**
+     * 是否开启守护
+     * @param isOpen 0 关闭 ， 1 开启
+     */
+    void openGuard(int isOpen);
+
     /***************************************************************************/
 
 

@@ -29,6 +29,7 @@ import com.lb.extend.security.intercom.TalkEvent;
 import com.lb.extend.security.setting.SystemSettingService;
 import com.lb.extend.security.temperature.TemperatureData;
 import com.lb.extend.security.temperature.TemperatureMeasurementService;
+import com.lb.extend.service.ILonbonService;
 import com.lb.extend.service.SystemSetService;
 import com.zclever.ipc.core.Config;
 import com.zclever.ipc.core.IpcManager;
@@ -71,7 +72,7 @@ public class FloatUniModule extends UniModule implements SettingProviderInterfac
     /**
      * 获取服务类
      */
-    private SystemSetService systemSetService;
+    private ILonbonService iLonbonService;
     private IntercomService intercomService ;
     private SwingCardService swingCardService ;
     private SystemSettingService systemSettingService ;
@@ -107,7 +108,7 @@ public class FloatUniModule extends UniModule implements SettingProviderInterfac
      * 需要在服务链接成功后才能获取到注册类
      */
     private void initService(){
-        systemSetService = IpcManager.INSTANCE.getService(SystemSetService.class);
+        iLonbonService = IpcManager.INSTANCE.getService(ILonbonService.class);
         intercomService = IpcManager.INSTANCE.getService(IntercomService.class);
         swingCardService = IpcManager.INSTANCE.getService(SwingCardService.class);
         systemSettingService = IpcManager.INSTANCE.getService(SystemSettingService.class);
@@ -1270,6 +1271,22 @@ public class FloatUniModule extends UniModule implements SettingProviderInterfac
             return;
         }
         systemSettingService.rebootSystem();
+    }
+
+    @UniJSMethod(uiThread = true)
+    @Override
+    public void openGuard(int isOpen) {
+        if (!isConnect){
+            showToast();
+            return ;
+        }
+        Log.d(TAG, "openGuard: isOpen："+isOpen);
+        if (iLonbonService == null){
+            Log.d(TAG, "openGuard: iLonbonService is null !");
+            return;
+        }
+        iLonbonService.openGuard(isOpen == 1);
+
     }
 
     /**********************************************************************************/
