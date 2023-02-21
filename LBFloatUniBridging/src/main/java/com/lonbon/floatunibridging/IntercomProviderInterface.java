@@ -216,9 +216,37 @@ public interface IntercomProviderInterface {
      */
     void takeFrame();
 
+    /**
+     * 获取照片数据回调
+     * @param uniJsCallback
+     */
     void takePictureCallBack(UniJSCallback uniJsCallback);
-
+    /**
+     * 获取视频预览数据回调
+     * @param uniJsCallback
+     */
     void takeFrameCallBack(UniJSCallback uniJsCallback);
 
+
+    /**
+     * 设置通话记录文件存储路径
+     * @param path
+     * @param uniJsCallback
+     */
+    void setRecordPath(String path,UniJSCallback uniJsCallback);
+
+    /**
+     * 获取某路径下文件列表
+     * @param path
+     * @param uniJsCallback
+     */
+    void getFileList(String path,UniJSCallback uniJsCallback);
+
+    /**
+     * 删除文件
+     * @param path
+     * @param uniJsCallback
+     */
+    void deleteFile(String path,UniJSCallback uniJsCallback);
 
 }

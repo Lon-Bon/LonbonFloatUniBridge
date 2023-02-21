@@ -40,6 +40,7 @@ import com.zclever.ipc.core.client.IPreviewCallBack;
 import com.zclever.ipc.core.client.PictureFormat;
 
 import java.io.ByteArrayOutputStream;
+import java.io.File;
 import java.util.ArrayList;
 import java.util.Arrays;
 
@@ -712,6 +713,67 @@ public class FloatUniModule extends UniModule implements SettingProviderInterfac
                 uniJsCallback.invokeAndKeepAlive(jsonObject);
             }
         });
+    }
+
+    @Override
+    public void setRecordPath(String path, UniJSCallback uniJsCallback) {
+        if (!isConnect){
+            showToast();
+            return ;
+        }
+        if (intercomService == null){
+            Log.d(TAG, "setRecordPath: intercomService is null !");
+            return;
+        }
+        intercomService.setRecordPath(path, new Result<String>() {
+            @Override
+            public void onData(String s) {
+                JSONObject jsonObject = new JSONObject();
+                jsonObject.put("url",s);
+                uniJsCallback.invoke(jsonObject);
+            }
+        });
+    }
+
+    @Override
+    public void getFileList(String path, UniJSCallback uniJsCallback) {
+        if (!isConnect){
+            showToast();
+            return ;
+        }
+        if (intercomService == null){
+            Log.d(TAG, "getFileList: intercomService is null !");
+            return;
+        }
+        intercomService.getFileList(path, new Result<ArrayList<File>>() {
+            @Override
+            public void onData(ArrayList<File> files) {
+                JSONObject jsonObject = new JSONObject();
+                jsonObject.put("url",new Gson().toJson(files));
+                uniJsCallback.invoke(jsonObject);
+            }
+        });
+    }
+
+    @Override
+    public void deleteFile(String path, UniJSCallback uniJsCallback) {
+        if (!isConnect){
+            showToast();
+            return ;
+        }
+        if (intercomService == null){
+            Log.d(TAG, "deleteFile: intercomService is null !");
+            return;
+        }
+        intercomService.deleteFile(path, new Result<Boolean>() {
+            @Override
+            public void onData(Boolean isSuccess) {
+                JSONObject jsonObject = new JSONObject();
+                jsonObject.put("isSuccess",isSuccess);
+                uniJsCallback.invoke(jsonObject);
+            }
+        });
+
     }
 
     /**
