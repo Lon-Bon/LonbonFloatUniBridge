@@ -715,6 +715,12 @@ public class FloatUniModule extends UniModule implements SettingProviderInterfac
         });
     }
 
+    /**
+     * 设置通话记录文件存储路径
+     * @param path
+     * @param uniJsCallback
+     */
+    @UniJSMethod(uiThread = false)
     @Override
     public void setRecordPath(String path, UniJSCallback uniJsCallback) {
         if (!isConnect){
@@ -735,6 +741,12 @@ public class FloatUniModule extends UniModule implements SettingProviderInterfac
         });
     }
 
+    /**
+     * 获取该路径下的文件
+     * @param path
+     * @param uniJsCallback
+     */
+    @UniJSMethod(uiThread = false)
     @Override
     public void getFileList(String path, UniJSCallback uniJsCallback) {
         if (!isConnect){
@@ -755,6 +767,12 @@ public class FloatUniModule extends UniModule implements SettingProviderInterfac
         });
     }
 
+    /**
+     * 删除文件
+     * @param path
+     * @param uniJsCallback
+     */
+    @UniJSMethod(uiThread = false)
     @Override
     public void deleteFile(String path, UniJSCallback uniJsCallback) {
         if (!isConnect){
