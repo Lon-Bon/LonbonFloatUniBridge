@@ -749,7 +749,7 @@ public class FloatUniModule extends UniModule implements SettingProviderInterfac
             @Override
             public void onData(ArrayList<File> files) {
                 JSONObject jsonObject = new JSONObject();
-                jsonObject.put("url",new Gson().toJson(files));
+                jsonObject.put("filesJson",new Gson().toJson(files));
                 uniJsCallback.invoke(jsonObject);
             }
         });
