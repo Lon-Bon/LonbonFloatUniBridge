@@ -43,6 +43,7 @@ import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.List;
 
 import javax.security.auth.callback.Callback;
 
@@ -760,8 +761,15 @@ public class FloatUniModule extends UniModule implements SettingProviderInterfac
         intercomService.getFileList(path, new Result<ArrayList<File>>() {
             @Override
             public void onData(ArrayList<File> files) {
+                List<JsonFile> jsonList = new ArrayList<>();
+                for(File file:files){
+                    boolean hasChildFile = file.listFiles() != null && file.listFiles().length > 0;
+                    jsonList.add(new JsonFile(
+                            file.getPath(),file.getName(),file.length(),file.isDirectory(),hasChildFile
+                    ));
+                }
                 JSONObject jsonObject = new JSONObject();
-                jsonObject.put("filesJson",new Gson().toJson(files));
+                jsonObject.put("filesJson",new Gson().toJson(jsonList));
                 uniJsCallback.invoke(jsonObject);
             }
         });
