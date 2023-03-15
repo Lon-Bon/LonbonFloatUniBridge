@@ -1,2 +1,0 @@
-# LonbonFloatUniBridge
-这是一个来邦悬浮uniapp开发框架接口仓库
