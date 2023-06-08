@@ -1,11 +1,14 @@
 package com.lonbon.floatunibridging;
 
+<<<<<<< HEAD
 import android.util.Log;
 
 import com.lb.extend.security.intercom.DeviceInfo;
 import com.lb.extend.security.intercom.LocalDeviceInfo;
 import com.zclever.ipc.core.Result;
 
+=======
+>>>>>>> develop
 import io.dcloud.feature.uniapp.bridge.UniJSCallback;
 
 /**
