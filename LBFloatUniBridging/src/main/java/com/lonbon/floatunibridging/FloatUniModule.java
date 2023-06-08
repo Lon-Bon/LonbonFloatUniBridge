@@ -1,7 +1,16 @@
 package com.lonbon.floatunibridging;
 
+import android.graphics.Bitmap;
+import android.graphics.BitmapFactory;
+import android.graphics.ImageFormat;
+import android.graphics.Rect;
+import android.graphics.YuvImage;
+import android.util.Base64;
 import android.util.Log;
 import android.widget.Toast;
+
+import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
 
 import com.alibaba.fastjson.JSONObject;
 import com.google.gson.Gson;
@@ -20,11 +29,21 @@ import com.lb.extend.security.intercom.TalkEvent;
 import com.lb.extend.security.setting.SystemSettingService;
 import com.lb.extend.security.temperature.TemperatureData;
 import com.lb.extend.security.temperature.TemperatureMeasurementService;
+import com.lb.extend.service.ILonbonService;
 import com.lb.extend.service.SystemSetService;
+import com.zclever.ipc.core.Config;
 import com.zclever.ipc.core.IpcManager;
 import com.zclever.ipc.core.Result;
+import com.zclever.ipc.core.client.FrameType;
+import com.zclever.ipc.core.client.IPictureCallBack;
+import com.zclever.ipc.core.client.IPreviewCallBack;
+import com.zclever.ipc.core.client.PictureFormat;
 
+import java.io.ByteArrayOutputStream;
+import java.io.File;
 import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.List;
 
 import javax.security.auth.callback.Callback;
 
@@ -55,7 +74,7 @@ public class FloatUniModule extends UniModule implements SettingProviderInterfac
     /**
      * 获取服务类
      */
-    private SystemSetService systemSetService;
+    private ILonbonService iLonbonService;
     private IntercomService intercomService ;
     private SwingCardService swingCardService ;
     private SystemSettingService systemSettingService ;
@@ -65,6 +84,9 @@ public class FloatUniModule extends UniModule implements SettingProviderInterfac
 
     @UniJSMethod(uiThread = true)
     public void initIPCManager(UniJSCallback uniJsCallback){
+
+//        //首先配置开启媒体服务
+        IpcManager.INSTANCE.config(Config.Companion.builder().configOpenMedia(true).build());
         //传入上下文
         IpcManager.INSTANCE.init(mUniSDKInstance.getContext());
         //连接服务端，传入的是服务端的包名
@@ -88,7 +110,7 @@ public class FloatUniModule extends UniModule implements SettingProviderInterfac
      * 需要在服务链接成功后才能获取到注册类
      */
     private void initService(){
-        systemSetService = IpcManager.INSTANCE.getService(SystemSetService.class);
+        iLonbonService = IpcManager.INSTANCE.getService(ILonbonService.class);
         intercomService = IpcManager.INSTANCE.getService(IntercomService.class);
         swingCardService = IpcManager.INSTANCE.getService(SwingCardService.class);
         systemSettingService = IpcManager.INSTANCE.getService(SystemSettingService.class);
@@ -530,7 +552,7 @@ public class FloatUniModule extends UniModule implements SettingProviderInterfac
         intercomService.oneKeyCall();
 
     }
-
+    @UniJSMethod(uiThread = true)
     @Override
     public void setLocalVideoViewPosition(int left, int top, int width, int height) {
         if (!isConnect){
@@ -543,7 +565,7 @@ public class FloatUniModule extends UniModule implements SettingProviderInterfac
         }
         intercomService.setPreViewPosition(left,top,width,height);
     }
-
+    @UniJSMethod(uiThread = true)
     @Override
     public void hideLocalPreView(Boolean hide) {
         if (!isConnect){
@@ -556,7 +578,7 @@ public class FloatUniModule extends UniModule implements SettingProviderInterfac
         }
         intercomService.hidePreView(hide);
     }
-
+    @UniJSMethod(uiThread = true)
     @Override
     public void setExtMicEna(Boolean enable) {
         if (!isConnect){
@@ -568,6 +590,259 @@ public class FloatUniModule extends UniModule implements SettingProviderInterfac
             return;
         }
         intercomService.setMicEna(enable);
+    }
+
+    @UniJSMethod(uiThread = true)
+    @Override
+    public void openLocalCamera(Boolean isOpen) {
+        if (!isConnect){
+            showToast();
+            return ;
+        }
+        if (intercomService == null){
+            Log.d(TAG, "openLocalCamera: intercomService is null !");
+            return;
+        }
+        intercomService.openLocalCamera(isOpen);
+    }
+
+    @UniJSMethod(uiThread = true)
+    @Override
+    public void initFrame() {
+        if (!isConnect){
+            showToast();
+            return ;
+        }
+        if (intercomService == null){
+            Log.d(TAG, "openLocalCamera: intercomService is null !");
+            return;
+        }
+        intercomService.initFrame();
+    }
+
+    private int width = 0;
+    private int height = 0;
+    @UniJSMethod(uiThread = true)
+    @Override
+    public void setViewWidthHeight(int width, int height) {
+        if (!isConnect){
+            showToast();
+            return ;
+        }
+        if (intercomService == null){
+            Log.d(TAG, "openLocalCamera: intercomService is null !");
+            return;
+        }
+        this.width = width;
+        this.height = height;
+        intercomService.setViewWidthHeight(width,height);
+    }
+
+    @UniJSMethod(uiThread = true)
+    @Override
+    public void startTakeFrame() {
+        if (!isConnect){
+            showToast();
+            return ;
+        }
+        if (intercomService == null){
+            Log.d(TAG, "startTakeFrame: intercomService is null !");
+            return;
+        }
+        intercomService.startTakeFrame();
+    }
+
+    @UniJSMethod(uiThread = true)
+    @Override
+    public void stopTakeFrame() {
+        if (!isConnect){
+            showToast();
+            return ;
+        }
+       IpcManager.INSTANCE.getMediaService().stopTakeFrame();
+    }
+
+    @UniJSMethod(uiThread = true)
+    @Override
+    public void takePicture() {
+        if (!isConnect){
+            showToast();
+            return ;
+        }
+        IpcManager.INSTANCE.getMediaService().takePicture(PictureFormat.JPEG);
+    }
+
+    @UniJSMethod(uiThread = true)
+    @Override
+    public void takeFrame() {
+        if (!isConnect){
+            showToast();
+            return ;
+        }
+
+        IpcManager.INSTANCE.getMediaService().takeFrame(FrameType.NV21);
+    }
+
+    @UniJSMethod(uiThread = true)
+    @Override
+    public void takePictureCallBack(UniJSCallback uniJsCallback) {
+        IpcManager.INSTANCE.getMediaService().setPictureCallBack(new IPictureCallBack() {
+            @Override
+            public void onPictureTaken(@Nullable byte[] bytes, int i, int i1, @NonNull PictureFormat pictureFormat) {
+                Log.i(TAG, "takePictureCallBack: "+Arrays.toString(bytes));
+                Log.i(TAG, "takePictureCallBack: "+pictureFormat);
+                JSONObject jsonObject = new JSONObject();
+                jsonObject.put("bytes",getBitmapBase64(bytes,width,height));
+                jsonObject.put("pictureFormat",pictureFormat);
+                uniJsCallback.invokeAndKeepAlive(jsonObject);
+            }
+        });
+
+    }
+
+    @UniJSMethod(uiThread = true)
+    @Override
+    public void takeFrameCallBack(UniJSCallback uniJsCallback) {
+        IpcManager.INSTANCE.getMediaService().setPreviewCallBack(new IPreviewCallBack() {
+            @Override
+            public void onPreviewFrame(@Nullable byte[] bytes, int i, int i1, @NonNull FrameType frameType) {
+                Log.i(TAG, "takeFrameCallBack: "+ Arrays.toString(bytes));
+                Log.i(TAG, "takeFrameCallBack: "+frameType);
+                JSONObject jsonObject = new JSONObject();
+                jsonObject.put("bytes",getBitmapBase64(bytes,width,height));
+                jsonObject.put("frameType",frameType);
+                uniJsCallback.invokeAndKeepAlive(jsonObject);
+            }
+        });
+    }
+
+    /**
+     * 设置通话记录文件存储路径
+     * @param path
+     * @param uniJsCallback
+     */
+    @UniJSMethod(uiThread = false)
+    @Override
+    public void setRecordPath(String path, UniJSCallback uniJsCallback) {
+        if (!isConnect){
+            showToast();
+            return ;
+        }
+        if (intercomService == null){
+            Log.d(TAG, "setRecordPath: intercomService is null !");
+            return;
+        }
+        intercomService.setRecordPath(path, new Result<String>() {
+            @Override
+            public void onData(String s) {
+                JSONObject jsonObject = new JSONObject();
+                jsonObject.put("url",s);
+                uniJsCallback.invoke(jsonObject);
+            }
+        });
+    }
+
+    /**
+     * 获取该路径下的文件
+     * @param path
+     * @param uniJsCallback
+     */
+    @UniJSMethod(uiThread = false)
+    @Override
+    public void getFileList(String path, UniJSCallback uniJsCallback) {
+        if (!isConnect){
+            showToast();
+            return ;
+        }
+        if (intercomService == null){
+            Log.d(TAG, "getFileList: intercomService is null !");
+            return;
+        }
+        intercomService.getFileList(path, new Result<ArrayList<File>>() {
+            @Override
+            public void onData(ArrayList<File> files) {
+                List<JsonFile> jsonList = new ArrayList<>();
+                for(File file:files){
+                    boolean hasChildFile = file.listFiles() != null && file.listFiles().length > 0;
+                    jsonList.add(new JsonFile(
+                            file.getPath(),file.getName(),file.length(),file.isDirectory(),hasChildFile
+                    ));
+                }
+                JSONObject jsonObject = new JSONObject();
+                jsonObject.put("filesJson",new Gson().toJson(jsonList));
+                uniJsCallback.invoke(jsonObject);
+            }
+        });
+    }
+
+    /**
+     * 删除文件
+     * @param path
+     * @param uniJsCallback
+     */
+    @UniJSMethod(uiThread = false)
+    @Override
+    public void deleteFile(String path, UniJSCallback uniJsCallback) {
+        if (!isConnect){
+            showToast();
+            return ;
+        }
+        if (intercomService == null){
+            Log.d(TAG, "deleteFile: intercomService is null !");
+            return;
+        }
+        intercomService.deleteFile(path, new Result<Boolean>() {
+            @Override
+            public void onData(Boolean isSuccess) {
+                JSONObject jsonObject = new JSONObject();
+                jsonObject.put("isSuccess",isSuccess);
+                uniJsCallback.invoke(jsonObject);
+            }
+        });
+
+    }
+
+    /**
+     * 图片转换为Base64字符串
+     * @param curFaceNV21Data
+     * @param width
+     * @param height
+     * @return
+     */
+    private String getBitmapBase64(byte[] curFaceNV21Data, int width, int height){
+        //encode image to base64 string
+        ByteArrayOutputStream baos = new ByteArrayOutputStream();
+        Bitmap bitmap = getBitmapFromYuv(curFaceNV21Data,width,height);
+        bitmap.compress(Bitmap.CompressFormat.JPEG, 100, baos);
+        byte[] imageBytes = baos.toByteArray();
+        return Base64.encodeToString(imageBytes, Base64.DEFAULT);
+    }
+
+    /**
+     * @param curFaceNV21Data
+     * @param width
+     * @param height
+     * @return
+     */
+    public Bitmap getBitmapFromYuv(byte[] curFaceNV21Data, int width, int height) {
+
+        Bitmap bmp = null;
+
+        try {
+            YuvImage image = new YuvImage(curFaceNV21Data, ImageFormat.NV21, width, height, null);
+            if (image != null) {
+                ByteArrayOutputStream stream = new ByteArrayOutputStream();
+                image.compressToJpeg(new Rect(0, 0, width, height), 80, stream);
+
+                bmp = BitmapFactory.decodeByteArray(stream.toByteArray(), 0, stream.size());
+                //TODO：此处可以对位图进行处理，如显示，保存等
+
+                stream.close();
+            }
+        } catch (Exception ex) {
+            ex.printStackTrace();
+        }
+        return bmp;
     }
 
 
@@ -754,7 +1029,7 @@ public class FloatUniModule extends UniModule implements SettingProviderInterfac
                 JSONObject jsonObject = new JSONObject();
                 jsonObject.put("code",String.valueOf(callbackData.getCode()));
                 jsonObject.put("msg",callbackData.getMsg());
-                jsonObject.put("id",String.valueOf(callbackData.getData().getId()));
+                jsonObject.put("id", callbackData.getData().getId());
                 jsonObject.put("feature",callbackData.getData().getFeature());
                 uniJSCallback.invokeAndKeepAlive(jsonObject);
             }
@@ -935,7 +1210,7 @@ public class FloatUniModule extends UniModule implements SettingProviderInterfac
                 jsonObject.put("code",String.valueOf(callbackData.getCode()));
                 jsonObject.put("msg",callbackData.getMsg());
                 jsonObject.put("temperature",String.valueOf(callbackData.getData().getTemperature()));
-                Log.d(TAG, "setTemperatureDataCallBack: "+jsonObject.toString());
+                Log.d(TAG, "setTemperatureDataCallBack: "+ jsonObject);
                 uniJSCallback.invokeAndKeepAlive(jsonObject);
             }
         });
@@ -1084,6 +1359,22 @@ public class FloatUniModule extends UniModule implements SettingProviderInterfac
             return;
         }
         systemSettingService.rebootSystem();
+    }
+
+    @UniJSMethod(uiThread = true)
+    @Override
+    public void openGuard(int isOpen) {
+        if (!isConnect){
+            showToast();
+            return ;
+        }
+        Log.d(TAG, "openGuard: isOpen："+isOpen);
+        if (iLonbonService == null){
+            Log.d(TAG, "openGuard: iLonbonService is null !");
+            return;
+        }
+        iLonbonService.openGuard(isOpen == 1);
+
     }
 
     /**********************************************************************************/

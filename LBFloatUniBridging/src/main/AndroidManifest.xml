@@ -1,3 +1,14 @@
 <?xml version="1.0" encoding="utf-8"?>
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
-    package="com.lonbon.floatunibridging"/>
+    package="com.lonbon.floatunibridging">
+    <uses-permission android:name="android.permission.GET_TASKS"/>
+    <application
+        android:allowBackup="true"
+        android:supportsRtl="true">
+        <receiver android:name=".AppStartReceiver">
+            <intent-filter>
+                <action android:name="com.lonbon.intent.action.app_start" />
+            </intent-filter>
+        </receiver>
+    </application>
+</manifest>

@@ -21,13 +21,13 @@ public interface SettingProviderInterface {
      * 启动刷卡模块（同步方法），进入界面时可调用
      * @return 0：成功，其它值失败
      */
-    public void syncStartCard(UniJSCallback uniJSCallback);
+    void syncStartCard(UniJSCallback uniJSCallback);
 
     /**
      * 停止刷卡模块（同步方法），离开界面时可调用
      * @return 0：成功，其它值失败
      */
-    public void syncStopCard(UniJSCallback uniJSCallback);
+    void syncStopCard(UniJSCallback uniJSCallback);
 
     /**
      * 刷卡回调
@@ -35,7 +35,7 @@ public interface SettingProviderInterface {
      *                      如果成功，则通过CallbackData的data获取CardData，CardData的cardNum是卡号；
      *                      如果失败，则通过CallbackData的code来判断失败类型，CallbackData的msg会写明失败原因
      */
-    public void setCardDataCallBack(UniJSCallback uniJSCallback);
+    void setCardDataCallBack(UniJSCallback uniJSCallback);
 
     /***************************************************************************/
 
@@ -203,6 +203,12 @@ public interface SettingProviderInterface {
      * 重启设备
      */
     void rebootSystem();
+
+    /**
+     * 是否开启守护
+     * @param isOpen 0 关闭 ， 1 开启
+     */
+    void openGuard(int isOpen);
 
     /***************************************************************************/
 

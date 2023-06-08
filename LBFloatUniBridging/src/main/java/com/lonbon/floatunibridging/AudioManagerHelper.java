@@ -26,7 +26,7 @@ public class AudioManagerHelper {
     private final String TAG = "AudioMngHelper";
     private final boolean OpenLog = true;
 
-    private AudioManager audioManager;
+    private final AudioManager audioManager;
     private int NOW_AUDIO_TYPE = TYPE_MUSIC;
     private int NOW_FLAG = FLAG_NOTHING;
     private int VOICE_STEP_100 = 2; //0-100的步进。
