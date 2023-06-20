@@ -1428,6 +1428,7 @@ public class FloatUniModule extends UniModule implements SettingProviderInterfac
         educationService.exit();
     }
 
+    @UniJSMethod(uiThread = true)
     @Override
     public void controlEducationListener(boolean isExecute) {
         if (!isConnect){
@@ -1442,6 +1443,7 @@ public class FloatUniModule extends UniModule implements SettingProviderInterfac
         educationService.setEduTaskExecuteState(isExecute);
     }
 
+    @UniJSMethod(uiThread = true)
     @Override
     public void hdmiOpen(int outputConfigure) {
         if (!isConnect){
