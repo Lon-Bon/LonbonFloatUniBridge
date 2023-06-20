@@ -17,6 +17,7 @@ import com.google.gson.Gson;
 import com.lb.extend.common.CallbackData;
 import com.lb.extend.security.card.CardData;
 import com.lb.extend.security.card.SwingCardService;
+import com.lb.extend.security.education.EducationService;
 import com.lb.extend.security.fingerprint.FingerprintCompareResult;
 import com.lb.extend.security.fingerprint.FingerprintFeatureResult;
 import com.lb.extend.security.fingerprint.FingerprintLeftNumResult;
@@ -52,6 +53,7 @@ import io.dcloud.feature.uniapp.bridge.UniJSCallback;
 import io.dcloud.feature.uniapp.common.UniModule;
 import kotlin.Unit;
 import kotlin.jvm.functions.Function0;
+import kotlin.jvm.functions.Function1;
 
 /**
  * *****************************************************************************
@@ -67,7 +69,7 @@ import kotlin.jvm.functions.Function0;
  * @Create: 2022/4/6
  * @Describe:
  */
-public class FloatUniModule extends UniModule implements SettingProviderInterface,IntercomProviderInterface{
+public class FloatUniModule extends UniModule implements SettingProviderInterface,IntercomProviderInterface,EducationProviderInterface{
 
     private final String TAG = "FloatUniModule";
     private boolean isConnect = false;
@@ -80,6 +82,7 @@ public class FloatUniModule extends UniModule implements SettingProviderInterfac
     private SystemSettingService systemSettingService ;
     private TemperatureMeasurementService temperatureMeasurementService ;
     private FingerprintService fingerprintService ;
+    private EducationService educationService;
 
 
     @UniJSMethod(uiThread = true)
@@ -116,6 +119,7 @@ public class FloatUniModule extends UniModule implements SettingProviderInterfac
         systemSettingService = IpcManager.INSTANCE.getService(SystemSettingService.class);
         temperatureMeasurementService = IpcManager.INSTANCE.getService(TemperatureMeasurementService.class);
         fingerprintService = IpcManager.INSTANCE.getService(FingerprintService.class);
+        educationService = IpcManager.INSTANCE.getService(EducationService.class);
     }
 
 
@@ -659,7 +663,7 @@ public class FloatUniModule extends UniModule implements SettingProviderInterfac
             showToast();
             return ;
         }
-       IpcManager.INSTANCE.getMediaService().stopTakeFrame();
+        IpcManager.INSTANCE.getMediaService().stopTakeFrame();
     }
 
     @UniJSMethod(uiThread = true)
@@ -1222,7 +1226,7 @@ public class FloatUniModule extends UniModule implements SettingProviderInterfac
     public void setSystemTime(long time) {
         if (!isConnect){
             showToast();
-        return ;
+            return ;
         }
         Log.d(TAG, "setSystemTime: "+time);
         if (systemSettingService == null){
@@ -1375,6 +1379,138 @@ public class FloatUniModule extends UniModule implements SettingProviderInterfac
         }
         iLonbonService.openGuard(isOpen == 1);
 
+    }
+
+    /***********************************电教相关***********************************************/
+
+    @UniJSMethod(uiThread = true)
+    @Override
+    public void initEducation() {
+        if (!isConnect){
+            showToast();
+            return ;
+        }
+        Log.d(TAG, "initEducation: ");
+        if (educationService == null){
+            Log.d(TAG, "initEducation: educationService is null !");
+            return;
+        }
+        educationService.init();
+    }
+
+    @UniJSMethod(uiThread = true)
+    @Override
+    public void enterLiveShow() {
+        if (!isConnect){
+            showToast();
+            return ;
+        }
+        Log.d(TAG, "enterLiveShow: ");
+        if (educationService == null){
+            Log.d(TAG, "enterLiveShow: educationService is null !");
+            return;
+        }
+        educationService.startActivity();
+    }
+
+    @UniJSMethod(uiThread = true)
+    @Override
+    public void exitLiveShow() {
+        if (!isConnect){
+            showToast();
+            return ;
+        }
+        Log.d(TAG, "exitLiveShow: ");
+        if (educationService == null){
+            Log.d(TAG, "exitLiveShow: educationService is null !");
+            return;
+        }
+        educationService.exit();
+    }
+
+    @Override
+    public void controlEducationListener(boolean isExecute) {
+        if (!isConnect){
+            showToast();
+            return ;
+        }
+        Log.d(TAG, "controlEducationListener: ");
+        if (educationService == null){
+            Log.d(TAG, "controlEducationListener: educationService is null !");
+            return;
+        }
+        educationService.setEduTaskExecuteState(isExecute);
+    }
+
+    @Override
+    public void hdmiOpen(int outputConfigure) {
+        if (!isConnect){
+            showToast();
+            return ;
+        }
+        Log.d(TAG, "hdmiOpen: " + outputConfigure);
+        if (educationService == null){
+            Log.d(TAG, "hdmiOpen: educationService is null !");
+            return;
+        }
+        educationService.setHDMIConfigure(outputConfigure);
+    }
+
+    @UniJSMethod(uiThread = true)
+    @Override
+    public void exitEducation() {
+        if (!isConnect){
+            showToast();
+            return ;
+        }
+        Log.d(TAG, "exitEducation: ");
+        if (educationService == null){
+            Log.d(TAG, "exitEducation: educationService is null !");
+            return;
+        }
+        educationService.exitEduTask();
+    }
+
+    @UniJSMethod(uiThread = true)
+    @Override
+    public void syncGetEducationState(UniJSCallback uniJSCallback) {
+        Log.d(TAG, "getEducationState: ");
+        JSONObject jsonObject = new JSONObject();
+        if (!isConnect){
+            showToast();
+            jsonObject.put("hasEduTask", false);
+        }else {
+            if (educationService == null){
+                Log.d(TAG, "getEducationState: educationService is null !");
+                jsonObject.put("hasEduTask", false);
+                return;
+            }
+            jsonObject.put("hasEduTask", educationService.hasEduTask());
+        }
+        uniJSCallback.invoke(jsonObject);
+    }
+
+    @UniJSMethod(uiThread = true)
+    @Override
+    public void setEduTaskCallBack(UniJSCallback uniJSCallback) {
+        if (!isConnect){
+            showToast();
+            return ;
+        }
+        Log.d(TAG, "setEduTaskCallBack: ");
+        if (educationService == null){
+            Log.d(TAG, "setEduTaskCallBack: educationService is null !");
+            return;
+        }
+        educationService.setEduTaskListener(new Function1<Boolean, Unit>() {
+            @Override
+            public Unit invoke(Boolean aBoolean) {
+                JSONObject jsonObject = new JSONObject();
+                jsonObject.put("hasEduTask", aBoolean);
+                uniJSCallback.invokeAndKeepAlive(jsonObject);
+                return null;
+            }
+        });
     }
 
     /**********************************************************************************/
