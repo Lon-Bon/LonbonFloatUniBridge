@@ -1492,29 +1492,6 @@ public class FloatUniModule extends UniModule implements SettingProviderInterfac
         uniJSCallback.invoke(jsonObject);
     }
 
-    @UniJSMethod(uiThread = true)
-    @Override
-    public void setEduTaskCallBack(UniJSCallback uniJSCallback) {
-        if (!isConnect){
-            showToast();
-            return ;
-        }
-        Log.d(TAG, "setEduTaskCallBack: ");
-        if (educationService == null){
-            Log.d(TAG, "setEduTaskCallBack: educationService is null !");
-            return;
-        }
-        educationService.setEduTaskListener(new Function1<Boolean, Unit>() {
-            @Override
-            public Unit invoke(Boolean aBoolean) {
-                JSONObject jsonObject = new JSONObject();
-                jsonObject.put("hasEduTask", aBoolean);
-                uniJSCallback.invokeAndKeepAlive(jsonObject);
-                return null;
-            }
-        });
-    }
-
     /**********************************************************************************/
 
     private void showToast(){

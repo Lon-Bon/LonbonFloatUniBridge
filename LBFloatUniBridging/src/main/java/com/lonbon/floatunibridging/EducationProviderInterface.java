@@ -43,10 +43,4 @@ public interface EducationProviderInterface {
      * @return 0：成功，其它值失败
      */
     void syncGetEducationState(UniJSCallback uniJSCallback);
-
-    /**
-     * 电教任务回调
-     * @param uniJSCallback 是否存在电教任务
-     */
-    void setEduTaskCallBack(UniJSCallback uniJSCallback);
 }
