@@ -807,6 +807,48 @@ public class FloatUniModule extends UniModule implements SettingProviderInterfac
     }
 
     /**
+     * 主机控制分机通话音量
+     * @param volume - 范围 0-5
+     */
+    @UniJSMethod(uiThread = true)
+    @Override
+    public void setSlaveVolume(int volume) {
+        if (!isConnect){
+            showToast();
+            return ;
+        }
+        Log.d(TAG, "setSlaveVolume: " + volume);
+        if (intercomService == null){
+            Log.d(TAG, "setSlaveVolume: intercomService is null !");
+            return;
+        }
+        intercomService.setSlaveTalkVolume(volume);
+    }
+
+    /**
+     * 主机获取分机通话音量（同步方法）
+     * @return 0：成功，其它值失败
+     */
+    @UniJSMethod(uiThread = true)
+    @Override
+    public void syncGetSlaveVolume(UniJSCallback uniJSCallback) {
+        Log.d(TAG, "syncGetSlaveVolume: ");
+        JSONObject jsonObject = new JSONObject();
+        if (!isConnect){
+            showToast();
+            jsonObject.put("slaveVolume", 3);
+        }else {
+            if (intercomService == null){
+                Log.d(TAG, "syncGetSlaveVolume: intercomService is null !");
+                jsonObject.put("slaveVolume", 3);
+                return;
+            }
+            jsonObject.put("slaveVolume", intercomService.getSlaveTalkVolume());
+        }
+        uniJSCallback.invoke(jsonObject);
+    }
+
+    /**
      * 图片转换为Base64字符串
      * @param curFaceNV21Data
      * @param width

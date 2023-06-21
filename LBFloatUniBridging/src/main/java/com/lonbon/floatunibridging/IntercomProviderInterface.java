@@ -243,4 +243,16 @@ public interface IntercomProviderInterface {
      */
     void deleteFile(String path,UniJSCallback uniJsCallback);
 
+
+    /**
+     * 主机控制分机通话音量
+     * @param volume - 范围 0-5
+     */
+    void setSlaveVolume(int volume);
+
+    /**
+     * 主机获取分机通话音量（同步方法）
+     * @return 0：成功，其它值失败
+     */
+    void syncGetSlaveVolume(UniJSCallback uniJSCallback);
 }
