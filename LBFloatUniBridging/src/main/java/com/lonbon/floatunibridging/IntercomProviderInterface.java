@@ -255,4 +255,56 @@ public interface IntercomProviderInterface {
      * @return 0：成功，其它值失败
      */
     void syncGetSlaveVolume(UniJSCallback uniJSCallback);
+
+    /**
+     * 初始化喊话广播
+     */
+    void initBroadcast();
+
+    /**
+     * 设备IO事件回调
+     * @param uniJSCallback
+     */
+    void setOnIONotifyListener(UniJSCallback uniJSCallback);
+
+    /**
+     * 喊话广播相关状态回调
+     * @param uniJSCallback
+     */
+    void setOnSpeakBroadcastListener(UniJSCallback uniJSCallback);
+
+    /**
+     * 设置广播Toast提示
+     * @param uniJSCallback
+     */
+    void setOnToastListener(UniJSCallback uniJSCallback);
+
+    /**
+     * 添加喊话广播设备
+     * @param num
+     * @param uniJSCallback 回调目前设备列表
+     */
+    void addBroadcastObj(int num, UniJSCallback uniJSCallback);
+
+    /**
+     * 清空喊话广播设备
+     */
+    void clearBroadcastObj();
+
+    /**
+     * 设置喊话广播设备
+     */
+    void setSpeakBroadcastDevice();
+
+    /**
+     * 开始喊话广播
+     * @param data
+     */
+    void startSpeakBroadcast(int data);
+
+    /**
+     * 停止喊话广播
+     * @param data
+     */
+    void stopSpeakBroadcast(int data);
 }

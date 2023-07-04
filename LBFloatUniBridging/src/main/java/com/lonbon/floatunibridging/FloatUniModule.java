@@ -15,6 +15,9 @@ import androidx.annotation.Nullable;
 import com.alibaba.fastjson.JSONObject;
 import com.google.gson.Gson;
 import com.lb.extend.common.CallbackData;
+import com.lb.extend.security.broadcast.AreaDivision;
+import com.lb.extend.security.broadcast.IBroadcastService;
+import com.lb.extend.security.broadcast.SpeakBroadcastState;
 import com.lb.extend.security.card.CardData;
 import com.lb.extend.security.card.SwingCardService;
 import com.lb.extend.security.education.EducationService;
@@ -73,6 +76,8 @@ public class FloatUniModule extends UniModule implements SettingProviderInterfac
 
     private final String TAG = "FloatUniModule";
     private boolean isConnect = false;
+
+    private ArrayList<AreaDivision> areaDivisionArrayList = new ArrayList<>();
     /**
      * 获取服务类
      */
@@ -83,7 +88,7 @@ public class FloatUniModule extends UniModule implements SettingProviderInterfac
     private TemperatureMeasurementService temperatureMeasurementService ;
     private FingerprintService fingerprintService ;
     private EducationService educationService;
-
+    private IBroadcastService broadcastService;
 
     @UniJSMethod(uiThread = true)
     public void initIPCManager(UniJSCallback uniJsCallback){
@@ -120,6 +125,7 @@ public class FloatUniModule extends UniModule implements SettingProviderInterfac
         temperatureMeasurementService = IpcManager.INSTANCE.getService(TemperatureMeasurementService.class);
         fingerprintService = IpcManager.INSTANCE.getService(FingerprintService.class);
         educationService = IpcManager.INSTANCE.getService(EducationService.class);
+        broadcastService = IpcManager.INSTANCE.getService(IBroadcastService.class);
     }
 
 
@@ -1532,6 +1538,185 @@ public class FloatUniModule extends UniModule implements SettingProviderInterfac
             jsonObject.put("hasEduTask", educationService.hasEduTask());
         }
         uniJSCallback.invoke(jsonObject);
+    }
+
+    /***********************************广播相关***********************************************/
+
+    @UniJSMethod(uiThread = true)
+    @Override
+    public void initBroadcast() {
+        if (!isConnect){
+            showToast();
+            return ;
+        }
+        Log.d(TAG, "initBroadcast: ");
+        if (broadcastService == null){
+            Log.d(TAG, "initBroadcast: broadcastService is null !");
+            return;
+        }
+        broadcastService.initSpeakBroadcast();
+    }
+
+    @UniJSMethod(uiThread = true)
+    @Override
+    public void setOnIONotifyListener(UniJSCallback uniJSCallback) {
+        if (!isConnect){
+            showToast();
+            return ;
+        }
+        Log.d(TAG, "setOnIONotifyListener: ");
+        if (broadcastService == null){
+            Log.d(TAG, "setOnIONotifyListener: broadcastService is null !");
+            return;
+        }
+        broadcastService.onIONotifyListener(new Result<Integer>() {
+            @Override
+            public void onData(Integer data) {
+                Log.d(TAG, "onData: " + data);
+                JSONObject jsonObject = new JSONObject();
+                jsonObject.put("ioState", data);
+                uniJSCallback.invokeAndKeepAlive(jsonObject);
+            }
+        });
+    }
+
+    @UniJSMethod(uiThread = true)
+    @Override
+    public void setOnSpeakBroadcastListener(UniJSCallback uniJSCallback) {
+        if (!isConnect){
+            showToast();
+            return ;
+        }
+        Log.d(TAG, "setOnSpeakBroadcastListener: ");
+        if (broadcastService == null){
+            Log.d(TAG, "setOnSpeakBroadcastListener: broadcastService is null !");
+            return;
+        }
+        broadcastService.onSpeakBroadcastListener(new Result<SpeakBroadcastState>() {
+            @Override
+            public void onData(SpeakBroadcastState data) {
+                Log.d(TAG, "onData: " + data);
+                int event = data.getEvent();
+                JSONObject jsonObject = new JSONObject();
+                jsonObject.put("event", event);
+                uniJSCallback.invokeAndKeepAlive(jsonObject);
+            }
+        });
+    }
+
+    @UniJSMethod(uiThread = true)
+    @Override
+    public void setOnToastListener(UniJSCallback uniJSCallback) {
+        if (!isConnect){
+            showToast();
+            return ;
+        }
+        Log.d(TAG, "setOnToastListener: ");
+        if (broadcastService == null){
+            Log.d(TAG, "setOnToastListener: broadcastService is null !");
+            return;
+        }
+        broadcastService.onToastListener(new Result<String>() {
+            @Override
+            public void onData(String s) {
+                Log.d(TAG, "onToastListener" + s);
+                JSONObject jsonObject = new JSONObject();
+                jsonObject.put("toast", s);
+                uniJSCallback.invokeAndKeepAlive(jsonObject);
+            }
+        });
+    }
+
+    @UniJSMethod(uiThread = true)
+    @Override
+    public void addBroadcastObj(int num, UniJSCallback uniJSCallback) {
+        if (!isConnect){
+            showToast();
+            return ;
+        }
+        Log.d(TAG, "addBroadcastObj: ");
+        if (broadcastService == null){
+            Log.d(TAG, "addBroadcastObj: broadcastService is null !");
+            return;
+        }
+
+        if (num < 1000){
+            Log.d(TAG, "addBroadcastObj: num must bigger than 1000 !");
+            return;
+        }
+        AreaDivision areaDivision = new AreaDivision();
+        areaDivision.setDisplayNum(num);
+        areaDivision.setMasterNum(num % 1000);
+        if (!areaDivisionArrayList.contains(areaDivision)) {
+            areaDivisionArrayList.add(areaDivision);
+        }
+
+        JSONObject jsonObject = new JSONObject();
+        jsonObject.put("broadcastDevices", new Gson().toJson(areaDivisionArrayList));
+        uniJSCallback.invoke(jsonObject);
+    }
+
+    @UniJSMethod(uiThread = true)
+    @Override
+    public void clearBroadcastObj() {
+        if (!isConnect){
+            showToast();
+            return ;
+        }
+        Log.d(TAG, "addBroadcastObj: ");
+        if (broadcastService == null){
+            Log.d(TAG, "addBroadcastObj: broadcastService is null !");
+            return;
+        }
+        areaDivisionArrayList.clear();
+    }
+
+    @UniJSMethod(uiThread = true)
+    @Override
+    public void setSpeakBroadcastDevice() {
+        if (!isConnect){
+            showToast();
+            return ;
+        }
+        Log.d(TAG, "setSpeakBroadcastDevice: ");
+        if (broadcastService == null){
+            Log.d(TAG, "setSpeakBroadcastDevice: broadcastService is null !");
+            return;
+        }
+        for (int i = 0; i < areaDivisionArrayList.size(); i++) {
+            Log.d(TAG, "setSpeakBroadcastDevice: " + areaDivisionArrayList.get(i));
+        }
+        broadcastService.setSpeakBroadcastDevice(areaDivisionArrayList);
+    }
+
+    @UniJSMethod(uiThread = true)
+    @Override
+    public void startSpeakBroadcast(int data) {
+        if (!isConnect){
+            showToast();
+            return ;
+        }
+        Log.d(TAG, "startSpeakBroadcast: ");
+        if (broadcastService == null){
+            Log.d(TAG, "startSpeakBroadcast: broadcastService is null !");
+            return;
+        }
+        broadcastService.startSpeakBroadcast(data);
+    }
+
+    @UniJSMethod(uiThread = true)
+    @Override
+    public void stopSpeakBroadcast(int data) {
+        if (!isConnect){
+            showToast();
+            return ;
+        }
+        Log.d(TAG, "stopSpeakBroadcast: ");
+        if (broadcastService == null){
+            Log.d(TAG, "stopSpeakBroadcast: broadcastService is null !");
+            return;
+        }
+        broadcastService.stopSpeakBroadcast(data);
     }
 
     /**********************************************************************************/
