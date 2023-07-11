@@ -1477,6 +1477,7 @@ public class FloatUniModule extends UniModule implements SettingProviderInterfac
         educationService.exitEducation();
     }
 
+    @UniJSMethod(uiThread = true)
     @Override
     public void syncGetEducationTaskList(UniJSCallback uniJSCallback) {
         if (!isConnect){
@@ -1493,6 +1494,7 @@ public class FloatUniModule extends UniModule implements SettingProviderInterfac
         uniJSCallback.invoke(jsonObject);
     }
 
+    @UniJSMethod(uiThread = true)
     @Override
     public void enterEducationTask() {
         if (!isConnect){
@@ -1507,6 +1509,7 @@ public class FloatUniModule extends UniModule implements SettingProviderInterfac
         educationService.showEducationTask();
     }
 
+    @UniJSMethod(uiThread = true)
     @Override
     public void exitEducationTask() {
         if (!isConnect){
@@ -1521,6 +1524,7 @@ public class FloatUniModule extends UniModule implements SettingProviderInterfac
         educationService.exitEducationTask();
     }
 
+    @UniJSMethod(uiThread = true)
     @Override
     public void setEducationStateListener(UniJSCallback uniJSCallback) {
         if (!isConnect){
