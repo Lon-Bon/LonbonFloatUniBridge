@@ -20,27 +20,29 @@ public interface EducationProviderInterface {
     void exitLiveShow();
 
     /**
-     * 启用/关闭实时监听电教任务进入播放页面
-     * Params:
-     * isExecute - 是否执行 true:执行，false：不执行
+     * 获取电教任务列表（同步方法）
      */
-    void controlEducationListener(boolean isExecute);
+    void syncGetEducationTaskList(UniJSCallback uniJSCallback);
 
     /**
-     * 点此按钮20秒后退出电教播放页面
+     * 进入电教任务播放页面
      */
-    void exitEducation();
+    void enterEducationTask();
 
     /**
-    * 控制HDMI
+     * 退出电教任务播放页面
+     */
+    void exitEducationTask();
+
+    /**
+     * 电教任务状态回调
+     */
+    void setEducationStateListener(UniJSCallback uniJSCallback);
+
+    /**
+     * 控制HDMI
      * Params:
      * outputConfigure - 1:HDMI一直有信号输出，2：HDMI仅在设备接收到信息发布或点播直播任务时有信号输出
      */
     void hdmiOpen(int outputConfigure);
-
-    /**
-     * 获取电教任务状态（同步方法）
-     * @return 0：成功，其它值失败
-     */
-    void syncGetEducationState(UniJSCallback uniJSCallback);
 }

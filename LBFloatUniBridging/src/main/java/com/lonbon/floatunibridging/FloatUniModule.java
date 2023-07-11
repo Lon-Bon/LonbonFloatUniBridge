@@ -21,6 +21,7 @@ import com.lb.extend.security.broadcast.SpeakBroadcastState;
 import com.lb.extend.security.card.CardData;
 import com.lb.extend.security.card.SwingCardService;
 import com.lb.extend.security.education.EducationService;
+import com.lb.extend.security.education.EducationTaskStateBean;
 import com.lb.extend.security.fingerprint.FingerprintCompareResult;
 import com.lb.extend.security.fingerprint.FingerprintFeatureResult;
 import com.lb.extend.security.fingerprint.FingerprintLeftNumResult;
@@ -1458,7 +1459,7 @@ public class FloatUniModule extends UniModule implements SettingProviderInterfac
             Log.d(TAG, "enterLiveShow: educationService is null !");
             return;
         }
-        educationService.startActivity();
+        educationService.showEducation();
     }
 
     @UniJSMethod(uiThread = true)
@@ -1473,22 +1474,73 @@ public class FloatUniModule extends UniModule implements SettingProviderInterfac
             Log.d(TAG, "exitLiveShow: educationService is null !");
             return;
         }
-        educationService.exit();
+        educationService.exitEducation();
     }
 
-    @UniJSMethod(uiThread = true)
     @Override
-    public void controlEducationListener(boolean isExecute) {
+    public void syncGetEducationTaskList(UniJSCallback uniJSCallback) {
         if (!isConnect){
             showToast();
             return ;
         }
-        Log.d(TAG, "controlEducationListener: ");
+        Log.d(TAG, "syncGetEducationTaskList: ");
         if (educationService == null){
-            Log.d(TAG, "controlEducationListener: educationService is null !");
+            Log.d(TAG, "syncGetEducationTaskList: educationService is null !");
             return;
         }
-        educationService.setEduTaskExecuteState(isExecute);
+        JSONObject jsonObject = new JSONObject();
+        jsonObject.put("educationTaskList", new Gson().toJson(educationService.getEducationTask()));
+        uniJSCallback.invoke(jsonObject);
+    }
+
+    @Override
+    public void enterEducationTask() {
+        if (!isConnect){
+            showToast();
+            return ;
+        }
+        Log.d(TAG, "enterEducationTask: ");
+        if (educationService == null){
+            Log.d(TAG, "enterEducationTask: educationService is null !");
+            return;
+        }
+        educationService.showEducationTask();
+    }
+
+    @Override
+    public void exitEducationTask() {
+        if (!isConnect){
+            showToast();
+            return ;
+        }
+        Log.d(TAG, "exitEducationTask: ");
+        if (educationService == null){
+            Log.d(TAG, "exitEducationTask: educationService is null !");
+            return;
+        }
+        educationService.exitEducationTask();
+    }
+
+    @Override
+    public void setEducationStateListener(UniJSCallback uniJSCallback) {
+        if (!isConnect){
+            showToast();
+            return ;
+        }
+        Log.d(TAG, "setEducationStateListener: ");
+        if (educationService == null){
+            Log.d(TAG, "setEducationStateListener: educationService is null !");
+            return;
+        }
+        educationService.setEducationTaskStateListener(new Result<EducationTaskStateBean>() {
+            @Override
+            public void onData(EducationTaskStateBean educationTaskStateBean) {
+                Log.d(TAG, "educationTaskStateBean: " + educationTaskStateBean);
+                JSONObject jsonObject = new JSONObject();
+                jsonObject.put("educationTaskStateBean", new Gson().toJson(educationTaskStateBean));
+                uniJSCallback.invokeAndKeepAlive(jsonObject);
+            }
+        });
     }
 
     @UniJSMethod(uiThread = true)
@@ -1504,40 +1556,6 @@ public class FloatUniModule extends UniModule implements SettingProviderInterfac
             return;
         }
         educationService.setHDMIConfigure(outputConfigure);
-    }
-
-    @UniJSMethod(uiThread = true)
-    @Override
-    public void exitEducation() {
-        if (!isConnect){
-            showToast();
-            return ;
-        }
-        Log.d(TAG, "exitEducation: ");
-        if (educationService == null){
-            Log.d(TAG, "exitEducation: educationService is null !");
-            return;
-        }
-        educationService.exitEduTask();
-    }
-
-    @UniJSMethod(uiThread = true)
-    @Override
-    public void syncGetEducationState(UniJSCallback uniJSCallback) {
-        Log.d(TAG, "getEducationState: ");
-        JSONObject jsonObject = new JSONObject();
-        if (!isConnect){
-            showToast();
-            jsonObject.put("hasEduTask", false);
-        }else {
-            if (educationService == null){
-                Log.d(TAG, "getEducationState: educationService is null !");
-                jsonObject.put("hasEduTask", false);
-                return;
-            }
-            jsonObject.put("hasEduTask", educationService.hasEduTask());
-        }
-        uniJSCallback.invoke(jsonObject);
     }
 
     /***********************************广播相关***********************************************/
