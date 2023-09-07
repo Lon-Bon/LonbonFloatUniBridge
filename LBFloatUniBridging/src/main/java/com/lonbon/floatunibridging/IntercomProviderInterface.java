@@ -307,4 +307,10 @@ public interface IntercomProviderInterface {
      * @param data
      */
     void stopSpeakBroadcast(int data);
+
+    /**
+     * 获取下级主机描述信息
+     * @param uniJsCallback
+     */
+    void getMasterDeviceListInfo(UniJSCallback uniJsCallback);
 }

@@ -30,6 +30,7 @@ import com.lb.extend.security.intercom.DeviceInfo;
 import com.lb.extend.security.intercom.DoorContact;
 import com.lb.extend.security.intercom.IntercomService;
 import com.lb.extend.security.intercom.LocalDeviceInfo;
+import com.lb.extend.security.intercom.MasterDeviceInfo;
 import com.lb.extend.security.intercom.TalkEvent;
 import com.lb.extend.security.setting.SystemSettingService;
 import com.lb.extend.security.temperature.TemperatureData;
@@ -1739,6 +1740,28 @@ public class FloatUniModule extends UniModule implements SettingProviderInterfac
             return;
         }
         broadcastService.stopSpeakBroadcast(data);
+    }
+
+    @UniJSMethod(uiThread = true)
+    @Override
+    public void getMasterDeviceListInfo(UniJSCallback uniJsCallback) {
+        if (!isConnect){
+            showToast();
+            return ;
+        }
+        Log.d(TAG, "getMasterDeviceListInfo: ");
+        if (intercomService == null){
+            Log.d(TAG, "getMasterDeviceListInfo: intercomService is null !");
+            return;
+        }
+        intercomService.getSubMasterList(new Result<ArrayList<MasterDeviceInfo>>() {
+            @Override
+            public void onData(ArrayList<MasterDeviceInfo> masterDeviceInfos) {
+                String gsonString = new Gson().toJson(masterDeviceInfos);
+                Log.d(TAG, "getMasterDeviceListInfo onData: "+gsonString);
+                uniJsCallback.invokeAndKeepAlive(gsonString);
+            }
+        });
     }
 
     /**********************************************************************************/
