@@ -1759,7 +1759,7 @@ public class FloatUniModule extends UniModule implements SettingProviderInterfac
             public void onData(ArrayList<MasterDeviceInfo> masterDeviceInfos) {
                 String gsonString = new Gson().toJson(masterDeviceInfos);
                 Log.d(TAG, "getMasterDeviceListInfo onData: "+gsonString);
-                uniJsCallback.invokeAndKeepAlive(gsonString);
+                uniJsCallback.invoke(gsonString);
             }
         });
     }
