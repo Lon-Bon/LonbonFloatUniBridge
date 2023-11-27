@@ -45,4 +45,11 @@ public interface EducationProviderInterface {
      * outputConfigure - 1:HDMI一直有信号输出，2：HDMI仅在设备接收到信息发布或点播直播任务时有信号输出
      */
     void hdmiOpen(int outputConfigure);
+
+    /**
+     * 双屏异常异声开关
+     * Params:
+     * enable - 0:仅从电视输出，1:声音和终端声音同步输出
+     */
+    void audioSyncOutput(int enable);
 }

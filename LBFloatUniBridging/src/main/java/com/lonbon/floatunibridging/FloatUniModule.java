@@ -1563,6 +1563,21 @@ public class FloatUniModule extends UniModule implements SettingProviderInterfac
         educationService.setHDMIConfigure(outputConfigure);
     }
 
+    @UniJSMethod(uiThread = true)
+    @Override
+    public void audioSyncOutput(int enable) {
+        if (!isConnect){
+            showToast();
+            return ;
+        }
+        Log.d(TAG, "audioSyncOutput: " + enable);
+        if (educationService == null){
+            Log.d(TAG, "audioSyncOutput: educationService is null !");
+            return;
+        }
+        educationService.setAudioSyncOutput(enable);
+    }
+
     /***********************************广播相关***********************************************/
 
     @UniJSMethod(uiThread = true)
