@@ -1572,7 +1572,7 @@ public class FloatUniModule extends UniModule implements SettingProviderInterfac
         }
         Log.d(TAG, "audioSyncOutput: " + enable);
         if (educationService == null){
-            Log.d(TAG, "audioSyncOutput: educationService is null !");
+            Log.d(TAG, "audioSyncOutput: educationService is null  !");
             return;
         }
         educationService.setAudioSyncOutput(enable);
