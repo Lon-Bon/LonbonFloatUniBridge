@@ -52,4 +52,22 @@ public interface EducationProviderInterface {
      * enable - 0:仅从电视输出，1:声音和终端声音同步输出
      */
     void audioSyncOutput(int enable);
+
+    /**
+     * hdmi 连接状态监听
+     * @param uniJSCallback true 已连接，false 未连接
+     */
+    void setHdmiStatusListener(UniJSCallback uniJSCallback);
+
+    /**
+     * 获取当前 hdmi 连接状态
+     * @param uniJSCallback true 已连接，false 未连接
+     */
+    void syncGetHdmiStatus(UniJSCallback uniJSCallback);
+
+    /**
+     * 本地喇叭控制开关
+     * @param isOpen true 开，false 关
+     */
+    void hornControlSwitch(boolean isOpen);
 }

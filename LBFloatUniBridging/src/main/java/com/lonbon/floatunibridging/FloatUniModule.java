@@ -1578,6 +1578,61 @@ public class FloatUniModule extends UniModule implements SettingProviderInterfac
         educationService.setAudioSyncOutput(enable);
     }
 
+    @UniJSMethod(uiThread = true)
+    @Override
+    public void setHdmiStatusListener(UniJSCallback uniJSCallback) {
+        if (!isConnect){
+            showToast();
+            return ;
+        }
+        Log.d(TAG, "setHdmiStatusListener: ");
+        if (educationService == null){
+            Log.d(TAG, "setHdmiStatusListener: educationService is null !");
+            return;
+        }
+        educationService.setHdmiStatusListener(new Result<Boolean>() {
+            @Override
+            public void onData(Boolean aBoolean) {
+                Log.d(TAG, "hdmiStatusListener: " + aBoolean);
+                JSONObject jsonObject = new JSONObject();
+                jsonObject.put("hdmiStatus", aBoolean);
+                uniJSCallback.invokeAndKeepAlive(jsonObject);
+            }
+        });
+    }
+
+    @UniJSMethod(uiThread = true)
+    @Override
+    public void syncGetHdmiStatus(UniJSCallback uniJSCallback) {
+        if (!isConnect){
+            showToast();
+            return ;
+        }
+        Log.d(TAG, "syncGetHdmiStatus: ");
+        if (educationService == null){
+            Log.d(TAG, "syncGetHdmiStatus: educationService is null !");
+            return;
+        }
+        JSONObject jsonObject = new JSONObject();
+        jsonObject.put("hdmiStatus", educationService.getHdmiStatus());
+        uniJSCallback.invoke(jsonObject);
+    }
+
+    @UniJSMethod(uiThread = true)
+    @Override
+    public void hornControlSwitch(boolean isOpen) {
+        if (!isConnect){
+            showToast();
+            return ;
+        }
+        Log.d(TAG, "hornControlSwitch: " + isOpen);
+        if (educationService == null){
+            Log.d(TAG, "hornControlSwitch: educationService is null  !");
+            return;
+        }
+        educationService.setHornControlSwitch(isOpen);
+    }
+
     /***********************************广播相关***********************************************/
 
     @UniJSMethod(uiThread = true)
