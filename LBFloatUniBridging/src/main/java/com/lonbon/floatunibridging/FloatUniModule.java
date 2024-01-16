@@ -36,7 +36,6 @@ import com.lb.extend.security.setting.SystemSettingService;
 import com.lb.extend.security.temperature.TemperatureData;
 import com.lb.extend.security.temperature.TemperatureMeasurementService;
 import com.lb.extend.service.ILonbonService;
-import com.lb.extend.service.SystemSetService;
 import com.zclever.ipc.core.Config;
 import com.zclever.ipc.core.IpcManager;
 import com.zclever.ipc.core.Result;
@@ -50,15 +49,15 @@ import java.io.File;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
-
-import javax.security.auth.callback.Callback;
+import java.util.concurrent.Executors;
+import java.util.concurrent.ScheduledExecutorService;
+import java.util.concurrent.TimeUnit;
 
 import io.dcloud.feature.uniapp.annotation.UniJSMethod;
 import io.dcloud.feature.uniapp.bridge.UniJSCallback;
 import io.dcloud.feature.uniapp.common.UniModule;
 import kotlin.Unit;
 import kotlin.jvm.functions.Function0;
-import kotlin.jvm.functions.Function1;
 
 /**
  * *****************************************************************************
@@ -80,6 +79,7 @@ public class FloatUniModule extends UniModule implements SettingProviderInterfac
     private boolean isConnect = false;
 
     private ArrayList<AreaDivision> areaDivisionArrayList = new ArrayList<>();
+    private ScheduledExecutorService singleThreadScheduledExecutor = Executors.newSingleThreadScheduledExecutor();
     /**
      * 获取服务类
      */
@@ -99,20 +99,45 @@ public class FloatUniModule extends UniModule implements SettingProviderInterfac
         IpcManager.INSTANCE.config(Config.Companion.builder().configOpenMedia(true).build());
         //传入上下文
         IpcManager.INSTANCE.init(mUniSDKInstance.getContext());
-        //连接服务端，传入的是服务端的包名
-        IpcManager.INSTANCE.open("com.lonbon.lonbon_app", new Function0<Unit>() {
+        IpcManager.INSTANCE.setServerDeath(new Function0<Unit>() {
             @Override
             public Unit invoke() {
-                isConnect = true;
-                initService();
+                isConnect = false;
                 JSONObject jsonObject = new JSONObject();
-                jsonObject.put("code",0);
+                jsonObject.put("code",1);
                 uniJsCallback.invoke(jsonObject);
-                Log.d(TAG, "initIPCManager:invoke: 服务链接成功！");
-                Toast.makeText(mUniSDKInstance.getContext(), "服务链接成功！", Toast.LENGTH_LONG).show();
+                Log.d(TAG, "initIPCManager:serverDeath: 服务链接断开！");
+                Toast.makeText(mUniSDKInstance.getContext(), "断开断开断开断开断开断开断开断开！", Toast.LENGTH_LONG).show();
                 return null;
             }
         });
+        //不断重连，每秒重连一次，防止掉线
+        singleThreadScheduledExecutor.scheduleWithFixedDelay(new Runnable() {
+            @Override
+            public void run() {
+                try {
+                    Log.i(TAG, "initIPCManager:scheduleWithFixedDelay");
+                    if (!isConnect) {
+                        //连接服务端，传入的是服务端的包名
+                        IpcManager.INSTANCE.open("com.lonbon.lonbon_app", new Function0<Unit>() {
+                            @Override
+                            public Unit invoke() {
+                                isConnect = true;
+                                initService();
+                                JSONObject jsonObject = new JSONObject();
+                                jsonObject.put("code",0);
+                                uniJsCallback.invoke(jsonObject);
+                                Log.d(TAG, "initIPCManager:invoke: 服务链接成功！");
+                                Toast.makeText(mUniSDKInstance.getContext(), "服务链接成功！", Toast.LENGTH_LONG).show();
+                                return null;
+                            }
+                        });
+                    }
+                } catch (Exception e) {
+                    Log.d(TAG, "initIPCManager:scheduleWithFixedDelay: " + e.getMessage());
+                }
+            }
+        }, 0, 1, TimeUnit.SECONDS);
 
     }
 
@@ -1739,7 +1764,7 @@ public class FloatUniModule extends UniModule implements SettingProviderInterfac
         }
         AreaDivision areaDivision = new AreaDivision();
         areaDivision.setDisplayNum(num);
-        areaDivision.setMasterNum(num % 1000);
+        areaDivision.setMasterNum(num / 1000);
         if (!areaDivisionArrayList.contains(areaDivision)) {
             areaDivisionArrayList.add(areaDivision);
         }
