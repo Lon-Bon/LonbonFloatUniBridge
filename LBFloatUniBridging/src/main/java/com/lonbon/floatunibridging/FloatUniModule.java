@@ -77,20 +77,6 @@ public class FloatUniModule extends UniModule implements SettingProviderInterfac
 
     private final String TAG = "FloatUniModule";
 
-    private ArrayList<AreaDivision> areaDivisionArrayList = new ArrayList<>();
-    private ScheduledExecutorService singleThreadScheduledExecutor = Executors.newSingleThreadScheduledExecutor();
-    /**
-     * 获取服务类
-     */
-    private ILonbonService iLonbonService;
-    private IntercomService intercomService ;
-    private SwingCardService swingCardService ;
-    private SystemSettingService systemSettingService ;
-    private TemperatureMeasurementService temperatureMeasurementService ;
-    private FingerprintService fingerprintService ;
-    private EducationService educationService;
-    private IBroadcastService broadcastService;
-
     @UniJSMethod(uiThread = true)
     public void initIPCManager(UniJSCallback uniJsCallback){
 
@@ -107,54 +93,56 @@ public class FloatUniModule extends UniModule implements SettingProviderInterfac
                 jsonObject.put("code",1);
                 uniJsCallback.invoke(jsonObject);
                 Log.d(TAG, "initIPCManager:serverDeath: 服务链接断开！");
-                Toast.makeText(mUniSDKInstance.getContext(), "断开断开断开断开断开断开断开断开！", Toast.LENGTH_LONG).show();
                 return null;
             }
         });
-        //不断重连，每秒重连一次，防止掉线
-        singleThreadScheduledExecutor.scheduleWithFixedDelay(new Runnable() {
-            @Override
-            public void run() {
-                try {
-                    Log.i(TAG, "initIPCManager:scheduleWithFixedDelay");
-                    if (!AppStartReceiver.isConnect) {
-                        Log.i(TAG, "initIPCManager:scheduleWithFixedDelay  1111");
-                        //连接服务端，传入的是服务端的包名
-                        IpcManager.INSTANCE.open("com.lonbon.lonbon_app", new Function0<Unit>() {
-                            @Override
-                            public Unit invoke() {
-                                AppStartReceiver.isConnect = true;
-                                initService();
-                                JSONObject jsonObject = new JSONObject();
-                                jsonObject.put("code",0);
-                                uniJsCallback.invoke(jsonObject);
-                                Log.d(TAG, "initIPCManager:invoke: 服务链接成功！");
-                                Toast.makeText(mUniSDKInstance.getContext(), "服务链接成功！", Toast.LENGTH_LONG).show();
-                                return null;
-                            }
-                        });
-                        Log.i(TAG, "initIPCManager:scheduleWithFixedDelay  2222");
+        if (!AppStartReceiver.hasStartExecutor) {
+            AppStartReceiver.hasStartExecutor = true;
+            Log.i(TAG, "initIPCManager:start singleThreadScheduledExecutor");
+            //不断重连，每秒重连一次，防止掉线
+            AppStartReceiver.singleThreadScheduledExecutor.scheduleWithFixedDelay(new Runnable() {
+                @Override
+                public void run() {
+                    try {
+                        Log.i(TAG, "initIPCManager:scheduleWithFixedDelay");
+                        if (!AppStartReceiver.isConnect) {
+                            Log.i(TAG, "initIPCManager:scheduleWithFixedDelay  1111");
+                            //连接服务端，传入的是服务端的包名
+                            IpcManager.INSTANCE.open("com.lonbon.lonbon_app", new Function0<Unit>() {
+                                @Override
+                                public Unit invoke() {
+                                    AppStartReceiver.isConnect = true;
+                                    initService();
+                                    JSONObject jsonObject = new JSONObject();
+                                    jsonObject.put("code", 0);
+                                    uniJsCallback.invoke(jsonObject);
+                                    Log.d(TAG, "initIPCManager:invoke: 服务链接成功！");
+                                    Toast.makeText(mUniSDKInstance.getContext(), "服务链接成功！", Toast.LENGTH_LONG).show();
+                                    return null;
+                                }
+                            });
+                            Log.i(TAG, "initIPCManager:scheduleWithFixedDelay  2222");
+                        }
+                    } catch (Exception e) {
+                        Log.d(TAG, "initIPCManager:scheduleWithFixedDelay: 3 " + e.getMessage());
                     }
-                } catch (Exception e) {
-                    Log.d(TAG, "initIPCManager:scheduleWithFixedDelay: 3 " + e.getMessage());
                 }
-            }
-        }, 0, 5, TimeUnit.SECONDS);
-
+            }, 0, 5, TimeUnit.SECONDS);
+        }
     }
 
     /**
      * 需要在服务链接成功后才能获取到注册类
      */
     private void initService(){
-        iLonbonService = IpcManager.INSTANCE.getService(ILonbonService.class);
-        intercomService = IpcManager.INSTANCE.getService(IntercomService.class);
-        swingCardService = IpcManager.INSTANCE.getService(SwingCardService.class);
-        systemSettingService = IpcManager.INSTANCE.getService(SystemSettingService.class);
-        temperatureMeasurementService = IpcManager.INSTANCE.getService(TemperatureMeasurementService.class);
-        fingerprintService = IpcManager.INSTANCE.getService(FingerprintService.class);
-        educationService = IpcManager.INSTANCE.getService(EducationService.class);
-        broadcastService = IpcManager.INSTANCE.getService(IBroadcastService.class);
+        AppStartReceiver.iLonbonService = IpcManager.INSTANCE.getService(ILonbonService.class);
+        AppStartReceiver.intercomService = IpcManager.INSTANCE.getService(IntercomService.class);
+        AppStartReceiver.swingCardService = IpcManager.INSTANCE.getService(SwingCardService.class);
+        AppStartReceiver.systemSettingService = IpcManager.INSTANCE.getService(SystemSettingService.class);
+        AppStartReceiver.temperatureMeasurementService = IpcManager.INSTANCE.getService(TemperatureMeasurementService.class);
+        AppStartReceiver.fingerprintService = IpcManager.INSTANCE.getService(FingerprintService.class);
+        AppStartReceiver.educationService = IpcManager.INSTANCE.getService(EducationService.class);
+        AppStartReceiver.broadcastService = IpcManager.INSTANCE.getService(IBroadcastService.class);
     }
 
 
@@ -163,11 +151,11 @@ public class FloatUniModule extends UniModule implements SettingProviderInterfac
     public void printDeviceInfoTest(UniJSCallback uniJsCallback){
         Log.d(TAG, "printDeviceInfoTest");
         Toast.makeText(mUniSDKInstance.getContext(), TAG, Toast.LENGTH_SHORT).show();
-        if (intercomService == null){
-            Log.d(TAG, "printDeviceInfoTest: intercomService is null !");
+        if (AppStartReceiver.intercomService == null){
+            Log.d(TAG, "printDeviceInfoTest: AppStartReceiver.intercomService is null !");
             return;
         }
-        intercomService.getCurrentDeviceInfo(new Result<LocalDeviceInfo>() {
+        AppStartReceiver.intercomService.getCurrentDeviceInfo(new Result<LocalDeviceInfo>() {
             @Override
             public void onData(LocalDeviceInfo localDeviceInfo) {
                 Toast.makeText(mUniSDKInstance.getContext(), localDeviceInfo.toString(), Toast.LENGTH_SHORT).show();
@@ -220,11 +208,11 @@ public class FloatUniModule extends UniModule implements SettingProviderInterfac
             showToast();
             return ;
         }
-        if (intercomService == null){
-            Log.d(TAG, "setTalkViewPosition: intercomService is null !");
+        if (AppStartReceiver.intercomService == null){
+            Log.d(TAG, "setTalkViewPosition: AppStartReceiver.intercomService is null !");
             return;
         }
-        intercomService.setTalkViewPosition(left,top,width,height);
+        AppStartReceiver.intercomService.setTalkViewPosition(left,top,width,height);
     }
 
     @UniJSMethod(uiThread = true)
@@ -235,11 +223,11 @@ public class FloatUniModule extends UniModule implements SettingProviderInterfac
             return ;
         }
         Log.d(TAG, "extDoorLampCtrl: ");
-        if (intercomService == null){
-            Log.d(TAG, "extDoorLampCtrl: intercomService is null !");
+        if (AppStartReceiver.intercomService == null){
+            Log.d(TAG, "extDoorLampCtrl: AppStartReceiver.intercomService is null !");
             return;
         }
-        intercomService.extDoorLampCtrl(color,open);
+        AppStartReceiver.intercomService.extDoorLampCtrl(color,open);
     }
 
     @UniJSMethod(uiThread = true)
@@ -250,11 +238,11 @@ public class FloatUniModule extends UniModule implements SettingProviderInterfac
             return ;
         }
         Log.d(TAG, "onDoorContactValue: ");
-        if (intercomService == null){
-            Log.d(TAG, "onDoorContactValue: intercomService is null !");
+        if (AppStartReceiver.intercomService == null){
+            Log.d(TAG, "onDoorContactValue: AppStartReceiver.intercomService is null !");
             return;
         }
-        intercomService.onDoorContactValue(new Result<DoorContact>() {
+        AppStartReceiver.intercomService.onDoorContactValue(new Result<DoorContact>() {
             @Override
             public void onData(DoorContact doorContact) {
                 JSONObject jsonObject = new JSONObject();
@@ -273,11 +261,11 @@ public class FloatUniModule extends UniModule implements SettingProviderInterfac
             return ;
         }
         Log.d(TAG, "asyncGetDeviceListInfo: ");
-        if (intercomService == null){
-            Log.d(TAG, "asyncGetDeviceListInfo: intercomService is null !");
+        if (AppStartReceiver.intercomService == null){
+            Log.d(TAG, "asyncGetDeviceListInfo: AppStartReceiver.intercomService is null !");
             return;
         }
-        intercomService.asyncGetDeviceListInfo(areaId,masterNum,slaveNum,devRegType, new Result<ArrayList<DeviceInfo>>() {
+        AppStartReceiver.intercomService.asyncGetDeviceListInfo(areaId,masterNum,slaveNum,devRegType, new Result<ArrayList<DeviceInfo>>() {
             @Override
             public void onData(ArrayList<DeviceInfo> deviceInfos) {
                 String gsonString = new Gson().toJson(deviceInfos);
@@ -295,11 +283,11 @@ public class FloatUniModule extends UniModule implements SettingProviderInterfac
             return ;
         }
         Log.d(TAG, "updateDeviceTalkState: ");
-        if (intercomService == null){
-            Log.d(TAG, "updateDeviceTalkState: intercomService is null !");
+        if (AppStartReceiver.intercomService == null){
+            Log.d(TAG, "updateDeviceTalkState: AppStartReceiver.intercomService is null !");
             return;
         }
-        intercomService.updateDeviceTalkState(new Result<DeviceInfo>() {
+        AppStartReceiver.intercomService.updateDeviceTalkState(new Result<DeviceInfo>() {
             @Override
             public void onData(DeviceInfo deviceInfo) {
                 JSONObject jsonObject = new JSONObject();
@@ -326,11 +314,11 @@ public class FloatUniModule extends UniModule implements SettingProviderInterfac
             return ;
         }
         Log.d(TAG, "deviceClick: ");
-        if (intercomService == null){
-            Log.d(TAG, "deviceClick: intercomService is null !");
+        if (AppStartReceiver.intercomService == null){
+            Log.d(TAG, "deviceClick: AppStartReceiver.intercomService is null !");
             return;
         }
-        intercomService.masterClickItem(masterNum,slaveNum,areaId,devRegType);
+        AppStartReceiver.intercomService.masterClickItem(masterNum,slaveNum,areaId,devRegType);
     }
 
     /**
@@ -348,11 +336,11 @@ public class FloatUniModule extends UniModule implements SettingProviderInterfac
             return ;
         }
         Log.d(TAG, "nativeCall: ");
-        if (intercomService == null){
-            Log.d(TAG, "nativeCall: intercomService is null !");
+        if (AppStartReceiver.intercomService == null){
+            Log.d(TAG, "nativeCall: AppStartReceiver.intercomService is null !");
             return;
         }
-        intercomService.call(masterNum,slaveNum,areaId,devRegType);
+        AppStartReceiver.intercomService.call(masterNum,slaveNum,areaId,devRegType);
 
     }
 
@@ -371,11 +359,11 @@ public class FloatUniModule extends UniModule implements SettingProviderInterfac
             return ;
         }
         Log.d(TAG, "nativeAnswer: ");
-        if (intercomService == null){
-            Log.d(TAG, "nativeAnswer: intercomService is null !");
+        if (AppStartReceiver.intercomService == null){
+            Log.d(TAG, "nativeAnswer: AppStartReceiver.intercomService is null !");
             return;
         }
-        intercomService.answer(masterNum,slaveNum,areaId,devRegType);
+        AppStartReceiver.intercomService.answer(masterNum,slaveNum,areaId,devRegType);
 
     }
 
@@ -394,11 +382,11 @@ public class FloatUniModule extends UniModule implements SettingProviderInterfac
             return ;
         }
         Log.d(TAG, "nativeHangup: ");
-        if (intercomService == null){
-            Log.d(TAG, "nativeHangup: intercomService is null !");
+        if (AppStartReceiver.intercomService == null){
+            Log.d(TAG, "nativeHangup: AppStartReceiver.intercomService is null !");
             return;
         }
-        intercomService.hangup(masterNum,slaveNum,areaId,devRegType);
+        AppStartReceiver.intercomService.hangup(masterNum,slaveNum,areaId,devRegType);
 
     }
     @UniJSMethod(uiThread = true)
@@ -408,11 +396,11 @@ public class FloatUniModule extends UniModule implements SettingProviderInterfac
             showToast();
             return ;
         }
-        if (intercomService == null){
-            Log.d(TAG, "openLockCtrl: intercomService is null !");
+        if (AppStartReceiver.intercomService == null){
+            Log.d(TAG, "openLockCtrl: AppStartReceiver.intercomService is null !");
             return;
         }
-        intercomService.openLockCtrl(num,open);
+        AppStartReceiver.intercomService.openLockCtrl(num,open);
 
     }
     @UniJSMethod(uiThread = true)
@@ -422,11 +410,11 @@ public class FloatUniModule extends UniModule implements SettingProviderInterfac
             showToast();
             return ;
         }
-        if (intercomService == null){
-            Log.d(TAG, "getCurrentDeviceInfo: intercomService is null !");
+        if (AppStartReceiver.intercomService == null){
+            Log.d(TAG, "getCurrentDeviceInfo: AppStartReceiver.intercomService is null !");
             return;
         }
-        intercomService.getCurrentDeviceInfo(new Result<LocalDeviceInfo>() {
+        AppStartReceiver.intercomService.getCurrentDeviceInfo(new Result<LocalDeviceInfo>() {
             @Override
             public void onData(LocalDeviceInfo localDeviceInfo) {
                 JSONObject jsonObject = new JSONObject();
@@ -466,11 +454,11 @@ public class FloatUniModule extends UniModule implements SettingProviderInterfac
             showToast();
             return ;
         }
-        if (intercomService == null){
-            Log.d(TAG, "talkEventCallback: intercomService is null !");
+        if (AppStartReceiver.intercomService == null){
+            Log.d(TAG, "talkEventCallback: AppStartReceiver.intercomService is null !");
             return;
         }
-        intercomService.talkEventCallback(new Result<TalkEvent>() {
+        AppStartReceiver.intercomService.talkEventCallback(new Result<TalkEvent>() {
             @Override
             public void onData(TalkEvent talkEvent) {
                 JSONObject jsonObject = new JSONObject();
@@ -498,11 +486,11 @@ public class FloatUniModule extends UniModule implements SettingProviderInterfac
             showToast();
             return ;
         }
-        if (intercomService == null){
-            Log.d(TAG, "onDeviceOnLine: intercomService is null !");
+        if (AppStartReceiver.intercomService == null){
+            Log.d(TAG, "onDeviceOnLine: AppStartReceiver.intercomService is null !");
             return;
         }
-        intercomService.onDeviceOnLine(new Result<DeviceInfo>() {
+        AppStartReceiver.intercomService.onDeviceOnLine(new Result<DeviceInfo>() {
             @Override
             public void onData(DeviceInfo deviceInfo) {
                 JSONObject jsonObject = new JSONObject();
@@ -527,11 +515,11 @@ public class FloatUniModule extends UniModule implements SettingProviderInterfac
             showToast();
             return ;
         }
-        if (intercomService == null){
-            Log.d(TAG, "onDeviceOffLine: intercomService is null !");
+        if (AppStartReceiver.intercomService == null){
+            Log.d(TAG, "onDeviceOffLine: AppStartReceiver.intercomService is null !");
             return;
         }
-        intercomService.onDeviceOffLine(new Result<DeviceInfo>() {
+        AppStartReceiver.intercomService.onDeviceOffLine(new Result<DeviceInfo>() {
             @Override
             public void onData(DeviceInfo deviceInfo) {
                 JSONObject jsonObject = new JSONObject();
@@ -557,11 +545,11 @@ public class FloatUniModule extends UniModule implements SettingProviderInterfac
             showToast();
             return ;
         }
-        if (intercomService == null){
-            Log.d(TAG, "listenToTalk: intercomService is null !");
+        if (AppStartReceiver.intercomService == null){
+            Log.d(TAG, "listenToTalk: AppStartReceiver.intercomService is null !");
             return;
         }
-        intercomService.listenToTalk();
+        AppStartReceiver.intercomService.listenToTalk();
     }
     @UniJSMethod(uiThread = true)
     @Override
@@ -570,11 +558,11 @@ public class FloatUniModule extends UniModule implements SettingProviderInterfac
             showToast();
             return ;
         }
-        if (intercomService == null){
-            Log.d(TAG, "hideTalkView: intercomService is null !");
+        if (AppStartReceiver.intercomService == null){
+            Log.d(TAG, "hideTalkView: AppStartReceiver.intercomService is null !");
             return;
         }
-        intercomService.hideTalkView(hide);
+        AppStartReceiver.intercomService.hideTalkView(hide);
 
     }
     @UniJSMethod(uiThread = true)
@@ -584,11 +572,11 @@ public class FloatUniModule extends UniModule implements SettingProviderInterfac
             showToast();
             return ;
         }
-        if (intercomService == null){
-            Log.d(TAG, "oneKeyCall: intercomService is null !");
+        if (AppStartReceiver.intercomService == null){
+            Log.d(TAG, "oneKeyCall: AppStartReceiver.intercomService is null !");
             return;
         }
-        intercomService.oneKeyCall();
+        AppStartReceiver.intercomService.oneKeyCall();
 
     }
     @UniJSMethod(uiThread = true)
@@ -598,11 +586,11 @@ public class FloatUniModule extends UniModule implements SettingProviderInterfac
             showToast();
             return ;
         }
-        if (intercomService == null){
-            Log.d(TAG, "setLocalVideoViewPosition: intercomService is null !");
+        if (AppStartReceiver.intercomService == null){
+            Log.d(TAG, "setLocalVideoViewPosition: AppStartReceiver.intercomService is null !");
             return;
         }
-        intercomService.setPreViewPosition(left,top,width,height);
+        AppStartReceiver.intercomService.setPreViewPosition(left,top,width,height);
     }
     @UniJSMethod(uiThread = true)
     @Override
@@ -611,11 +599,11 @@ public class FloatUniModule extends UniModule implements SettingProviderInterfac
             showToast();
             return ;
         }
-        if (intercomService == null){
-            Log.d(TAG, "hideLocalPreView: intercomService is null !");
+        if (AppStartReceiver.intercomService == null){
+            Log.d(TAG, "hideLocalPreView: AppStartReceiver.intercomService is null !");
             return;
         }
-        intercomService.hidePreView(hide);
+        AppStartReceiver.intercomService.hidePreView(hide);
     }
     @UniJSMethod(uiThread = true)
     @Override
@@ -624,11 +612,11 @@ public class FloatUniModule extends UniModule implements SettingProviderInterfac
             showToast();
             return ;
         }
-        if (intercomService == null){
-            Log.d(TAG, "setExtMicEna: intercomService is null !");
+        if (AppStartReceiver.intercomService == null){
+            Log.d(TAG, "setExtMicEna: AppStartReceiver.intercomService is null !");
             return;
         }
-        intercomService.setMicEna(enable);
+        AppStartReceiver.intercomService.setMicEna(enable);
     }
 
     @UniJSMethod(uiThread = true)
@@ -638,11 +626,11 @@ public class FloatUniModule extends UniModule implements SettingProviderInterfac
             showToast();
             return ;
         }
-        if (intercomService == null){
-            Log.d(TAG, "openLocalCamera: intercomService is null !");
+        if (AppStartReceiver.intercomService == null){
+            Log.d(TAG, "openLocalCamera: AppStartReceiver.intercomService is null !");
             return;
         }
-        intercomService.openLocalCamera(isOpen);
+        AppStartReceiver.intercomService.openLocalCamera(isOpen);
     }
 
     @UniJSMethod(uiThread = true)
@@ -652,11 +640,11 @@ public class FloatUniModule extends UniModule implements SettingProviderInterfac
             showToast();
             return ;
         }
-        if (intercomService == null){
-            Log.d(TAG, "openLocalCamera: intercomService is null !");
+        if (AppStartReceiver.intercomService == null){
+            Log.d(TAG, "openLocalCamera: AppStartReceiver.intercomService is null !");
             return;
         }
-        intercomService.initFrame();
+        AppStartReceiver.intercomService.initFrame();
     }
 
     private int width = 0;
@@ -668,13 +656,13 @@ public class FloatUniModule extends UniModule implements SettingProviderInterfac
             showToast();
             return ;
         }
-        if (intercomService == null){
-            Log.d(TAG, "openLocalCamera: intercomService is null !");
+        if (AppStartReceiver.intercomService == null){
+            Log.d(TAG, "openLocalCamera: AppStartReceiver.intercomService is null !");
             return;
         }
         this.width = width;
         this.height = height;
-        intercomService.setViewWidthHeight(width,height);
+        AppStartReceiver.intercomService.setViewWidthHeight(width,height);
     }
 
     @UniJSMethod(uiThread = true)
@@ -684,11 +672,11 @@ public class FloatUniModule extends UniModule implements SettingProviderInterfac
             showToast();
             return ;
         }
-        if (intercomService == null){
-            Log.d(TAG, "startTakeFrame: intercomService is null !");
+        if (AppStartReceiver.intercomService == null){
+            Log.d(TAG, "startTakeFrame: AppStartReceiver.intercomService is null !");
             return;
         }
-        intercomService.startTakeFrame();
+        AppStartReceiver.intercomService.startTakeFrame();
     }
 
     @UniJSMethod(uiThread = true)
@@ -767,11 +755,11 @@ public class FloatUniModule extends UniModule implements SettingProviderInterfac
             showToast();
             return ;
         }
-        if (intercomService == null){
-            Log.d(TAG, "setRecordPath: intercomService is null !");
+        if (AppStartReceiver.intercomService == null){
+            Log.d(TAG, "setRecordPath: AppStartReceiver.intercomService is null !");
             return;
         }
-        intercomService.setRecordPath(path, new Result<String>() {
+        AppStartReceiver.intercomService.setRecordPath(path, new Result<String>() {
             @Override
             public void onData(String s) {
                 JSONObject jsonObject = new JSONObject();
@@ -793,11 +781,11 @@ public class FloatUniModule extends UniModule implements SettingProviderInterfac
             showToast();
             return ;
         }
-        if (intercomService == null){
-            Log.d(TAG, "getFileList: intercomService is null !");
+        if (AppStartReceiver.intercomService == null){
+            Log.d(TAG, "getFileList: AppStartReceiver.intercomService is null !");
             return;
         }
-        intercomService.getFileList(path, new Result<ArrayList<File>>() {
+        AppStartReceiver.intercomService.getFileList(path, new Result<ArrayList<File>>() {
             @Override
             public void onData(ArrayList<File> files) {
                 List<JsonFile> jsonList = new ArrayList<>();
@@ -826,11 +814,11 @@ public class FloatUniModule extends UniModule implements SettingProviderInterfac
             showToast();
             return ;
         }
-        if (intercomService == null){
-            Log.d(TAG, "deleteFile: intercomService is null !");
+        if (AppStartReceiver.intercomService == null){
+            Log.d(TAG, "deleteFile: AppStartReceiver.intercomService is null !");
             return;
         }
-        intercomService.deleteFile(path, new Result<Boolean>() {
+        AppStartReceiver.intercomService.deleteFile(path, new Result<Boolean>() {
             @Override
             public void onData(Boolean isSuccess) {
                 JSONObject jsonObject = new JSONObject();
@@ -853,11 +841,11 @@ public class FloatUniModule extends UniModule implements SettingProviderInterfac
             return ;
         }
         Log.d(TAG, "setSlaveVolume: " + volume);
-        if (intercomService == null){
-            Log.d(TAG, "setSlaveVolume: intercomService is null !");
+        if (AppStartReceiver.intercomService == null){
+            Log.d(TAG, "setSlaveVolume: AppStartReceiver.intercomService is null !");
             return;
         }
-        intercomService.setSlaveTalkVolume(volume);
+        AppStartReceiver.intercomService.setSlaveTalkVolume(volume);
     }
 
     /**
@@ -873,12 +861,12 @@ public class FloatUniModule extends UniModule implements SettingProviderInterfac
             showToast();
             jsonObject.put("slaveVolume", 3);
         }else {
-            if (intercomService == null){
-                Log.d(TAG, "syncGetSlaveVolume: intercomService is null !");
+            if (AppStartReceiver.intercomService == null){
+                Log.d(TAG, "syncGetSlaveVolume: AppStartReceiver.intercomService is null !");
                 jsonObject.put("slaveVolume", 3);
                 return;
             }
-            jsonObject.put("slaveVolume", intercomService.getSlaveTalkVolume());
+            jsonObject.put("slaveVolume", AppStartReceiver.intercomService.getSlaveTalkVolume());
         }
         uniJSCallback.invoke(jsonObject);
     }
@@ -942,13 +930,13 @@ public class FloatUniModule extends UniModule implements SettingProviderInterfac
             showToast();
             jsonObject.put("code",-1);
         }else {
-            if (swingCardService == null){
-                Log.d(TAG, "syncStartCard: swingCardService is null !");
+            if (AppStartReceiver.swingCardService == null){
+                Log.d(TAG, "syncStartCard: AppStartReceiver.swingCardService is null !");
                 jsonObject.put("code",-1);
                 return;
             }
             jsonObject.put("code",0);
-            swingCardService.start();
+            AppStartReceiver.swingCardService.start();
         }
         uniJSCallback.invoke(jsonObject);
     }
@@ -966,13 +954,13 @@ public class FloatUniModule extends UniModule implements SettingProviderInterfac
             jsonObject.put("code",-1);
         }else {
 
-            if (swingCardService == null){
-                Log.d(TAG, "syncStopCard: swingCardService is null !");
+            if (AppStartReceiver.swingCardService == null){
+                Log.d(TAG, "syncStopCard: AppStartReceiver.swingCardService is null !");
                 jsonObject.put("code",-1);
                 return;
             }
             jsonObject.put("code",0);
-            swingCardService.stop();
+            AppStartReceiver.swingCardService.stop();
         }
         uniJSCallback.invoke(jsonObject);
     }
@@ -989,11 +977,11 @@ public class FloatUniModule extends UniModule implements SettingProviderInterfac
             return ;
         }
         Log.d(TAG, "setCardDataCallBack: ");
-        if (swingCardService == null){
-            Log.d(TAG, "setCardDataCallBack: swingCardService is null !");
+        if (AppStartReceiver.swingCardService == null){
+            Log.d(TAG, "setCardDataCallBack: AppStartReceiver.swingCardService is null !");
             return;
         }
-        swingCardService.setCardDataCallBack(new Result<CallbackData<CardData>>() {
+        AppStartReceiver.swingCardService.setCardDataCallBack(new Result<CallbackData<CardData>>() {
             @Override
             public void onData(CallbackData<CardData> cardDataCallbackData) {
                 JSONObject jsonObject = new JSONObject();
@@ -1015,13 +1003,13 @@ public class FloatUniModule extends UniModule implements SettingProviderInterfac
             showToast();
             jsonObject.put("code",-1);
         }else {
-            if (fingerprintService == null){
-                Log.d(TAG, "syncStartFinger: fingerprintService is null !");
+            if (AppStartReceiver.fingerprintService == null){
+                Log.d(TAG, "syncStartFinger: AppStartReceiver.fingerprintService is null !");
                 jsonObject.put("code",-1);
                 return;
             }
             jsonObject.put("code",0);
-            fingerprintService.init();
+            AppStartReceiver.fingerprintService.init();
         }
         uniJSCallback.invoke(jsonObject);
 
@@ -1036,13 +1024,13 @@ public class FloatUniModule extends UniModule implements SettingProviderInterfac
             showToast();
             jsonObject.put("code",-1);
         }else {
-            if (fingerprintService == null){
-                Log.d(TAG, "syncStopFinger: fingerprintService is null !");
+            if (AppStartReceiver.fingerprintService == null){
+                Log.d(TAG, "syncStopFinger: AppStartReceiver.fingerprintService is null !");
                 jsonObject.put("code",-1);
                 return;
             }
             jsonObject.put("code",0);
-            fingerprintService.stop();
+            AppStartReceiver.fingerprintService.stop();
         }
         uniJSCallback.invoke(jsonObject);
     }
@@ -1050,33 +1038,33 @@ public class FloatUniModule extends UniModule implements SettingProviderInterfac
     @Override
     public void fingerModuleStop() {
         Log.d(TAG, "fingerModuleStop: ");
-        if (fingerprintService == null){
-            Log.d(TAG, "fingerModuleStop: fingerprintService is null !");
+        if (AppStartReceiver.fingerprintService == null){
+            Log.d(TAG, "fingerModuleStop: AppStartReceiver.fingerprintService is null !");
             return;
         }
-        fingerprintService.destroy();
+        AppStartReceiver.fingerprintService.destroy();
     }
 
     @UniJSMethod(uiThread = true)
     @Override
     public void fingerprintCollect(String id) {
         Log.d(TAG, "fingerprintCollect: ");
-        if (fingerprintService == null){
-            Log.d(TAG, "fingerprintCollect: fingerprintService is null !");
+        if (AppStartReceiver.fingerprintService == null){
+            Log.d(TAG, "fingerprintCollect: AppStartReceiver.fingerprintService is null !");
             return;
         }
-        fingerprintService.fingerprintCollect(id);
+        AppStartReceiver.fingerprintService.fingerprintCollect(id);
 
     }
     @UniJSMethod(uiThread = true)
     @Override
     public void fingerprintRecognition() {
         Log.d(TAG, "fingerprintRecognition: ");
-        if (fingerprintService == null){
-            Log.d(TAG, "fingerprintRecognition: fingerprintService is null !");
+        if (AppStartReceiver.fingerprintService == null){
+            Log.d(TAG, "fingerprintRecognition: AppStartReceiver.fingerprintService is null !");
             return;
         }
-        fingerprintService.fingerprintRecognition();
+        AppStartReceiver.fingerprintService.fingerprintRecognition();
 
     }
 
@@ -1085,11 +1073,11 @@ public class FloatUniModule extends UniModule implements SettingProviderInterfac
     @Override
     public void fingerprintFeatureInput(String id, String feature) {
         Log.d(TAG, "fingerprintFeatureInput: ");
-        if (fingerprintService == null){
-            Log.d(TAG, "fingerprintFeatureInput: fingerprintService is null !");
+        if (AppStartReceiver.fingerprintService == null){
+            Log.d(TAG, "fingerprintFeatureInput: AppStartReceiver.fingerprintService is null !");
             return;
         }
-        fingerprintService.fingerprintFeatureInput(id,feature);
+        AppStartReceiver.fingerprintService.fingerprintFeatureInput(id,feature);
     }
 
     @UniJSMethod(uiThread = true)
@@ -1100,11 +1088,11 @@ public class FloatUniModule extends UniModule implements SettingProviderInterfac
             return ;
         }
         Log.d(TAG, "setGetFingerprintFeatureCallBack: ");
-        if (fingerprintService == null){
-            Log.d(TAG, "setFingerprintFeatureCallBack: fingerprintService is null !");
+        if (AppStartReceiver.fingerprintService == null){
+            Log.d(TAG, "setFingerprintFeatureCallBack: AppStartReceiver.fingerprintService is null !");
             return;
         }
-        fingerprintService.setFingerprintFeatureCallBack(new Result<CallbackData<FingerprintFeatureResult>>() {
+        AppStartReceiver.fingerprintService.setFingerprintFeatureCallBack(new Result<CallbackData<FingerprintFeatureResult>>() {
             @Override
             public void onData(CallbackData<FingerprintFeatureResult> callbackData) {
                 JSONObject jsonObject = new JSONObject();
@@ -1125,11 +1113,11 @@ public class FloatUniModule extends UniModule implements SettingProviderInterfac
             return ;
         }
         Log.d(TAG, "setGetFingerprintFeatureLeftNumCallBack: ");
-        if (fingerprintService == null){
-            Log.d(TAG, "setFingerprintFeatureLeftNumCallBack: fingerprintService is null !");
+        if (AppStartReceiver.fingerprintService == null){
+            Log.d(TAG, "setFingerprintFeatureLeftNumCallBack: AppStartReceiver.fingerprintService is null !");
             return;
         }
-        fingerprintService.setFingerprintLeftNumCallBack(new Result<CallbackData<FingerprintLeftNumResult>>() {
+        AppStartReceiver.fingerprintService.setFingerprintLeftNumCallBack(new Result<CallbackData<FingerprintLeftNumResult>>() {
             @Override
             public void onData(CallbackData<FingerprintLeftNumResult> callbackData) {
                 JSONObject jsonObject = new JSONObject();
@@ -1150,11 +1138,11 @@ public class FloatUniModule extends UniModule implements SettingProviderInterfac
             return ;
         }
         Log.d(TAG, "setGetCompareFingerprintCallBack: ");
-        if (fingerprintService == null){
-            Log.d(TAG, "setCompareFingerprintCallBack: fingerprintService is null !");
+        if (AppStartReceiver.fingerprintService == null){
+            Log.d(TAG, "setCompareFingerprintCallBack: AppStartReceiver.fingerprintService is null !");
             return;
         }
-        fingerprintService.setFingerprintCompareCallBack(new Result<CallbackData<FingerprintCompareResult>>() {
+        AppStartReceiver.fingerprintService.setFingerprintCompareCallBack(new Result<CallbackData<FingerprintCompareResult>>() {
             @Override
             public void onData(CallbackData<FingerprintCompareResult> callbackData) {
                 JSONObject jsonObject = new JSONObject();
@@ -1181,12 +1169,12 @@ public class FloatUniModule extends UniModule implements SettingProviderInterfac
             return ;
         }
         Log.d(TAG, "setGetCompareFingerprintCallBack: ");
-        if (fingerprintService == null){
-            Log.d(TAG, "setCompareFingerprintCallBack: fingerprintService is null !");
+        if (AppStartReceiver.fingerprintService == null){
+            Log.d(TAG, "setCompareFingerprintCallBack: AppStartReceiver.fingerprintService is null !");
             return;
         }
 
-        fingerprintService.clearFingerprintById(id);
+        AppStartReceiver.fingerprintService.clearFingerprintById(id);
     }
 
     /**
@@ -1201,11 +1189,11 @@ public class FloatUniModule extends UniModule implements SettingProviderInterfac
             return ;
         }
         Log.d(TAG, "setGetCompareFingerprintCallBack: ");
-        if (fingerprintService == null){
-            Log.d(TAG, "setCompareFingerprintCallBack: fingerprintService is null !");
+        if (AppStartReceiver.fingerprintService == null){
+            Log.d(TAG, "setCompareFingerprintCallBack: AppStartReceiver.fingerprintService is null !");
             return;
         }
-        fingerprintService.clearFingerprintByFeature(feature);
+        AppStartReceiver.fingerprintService.clearFingerprintByFeature(feature);
     }
 
     /**
@@ -1219,11 +1207,11 @@ public class FloatUniModule extends UniModule implements SettingProviderInterfac
             return ;
         }
         Log.d(TAG, "setGetCompareFingerprintCallBack: ");
-        if (fingerprintService == null){
-            Log.d(TAG, "setCompareFingerprintCallBack: fingerprintService is null !");
+        if (AppStartReceiver.fingerprintService == null){
+            Log.d(TAG, "setCompareFingerprintCallBack: AppStartReceiver.fingerprintService is null !");
             return;
         }
-        fingerprintService.clearAllFingerprint();
+        AppStartReceiver.fingerprintService.clearAllFingerprint();
     }
     /**********************************************************************************/
 
@@ -1238,13 +1226,13 @@ public class FloatUniModule extends UniModule implements SettingProviderInterfac
             jsonObject.put("code",-1);
         }else {
 
-            if (temperatureMeasurementService == null){
-                Log.d(TAG, "syncStartTemperature: temperatureMeasurementService is null !");
+            if (AppStartReceiver.temperatureMeasurementService == null){
+                Log.d(TAG, "syncStartTemperature: AppStartReceiver.temperatureMeasurementService is null !");
                 jsonObject.put("code",-1);
                 return;
             }
             jsonObject.put("code",0);
-            temperatureMeasurementService.start();
+            AppStartReceiver.temperatureMeasurementService.start();
         }
         uniJSCallback.invoke(jsonObject);
 
@@ -1260,13 +1248,13 @@ public class FloatUniModule extends UniModule implements SettingProviderInterfac
             jsonObject.put("code",-1);
         }else {
 
-            if (temperatureMeasurementService == null){
-                Log.d(TAG, "syncStopTemperature: temperatureMeasurementService is null !");
+            if (AppStartReceiver.temperatureMeasurementService == null){
+                Log.d(TAG, "syncStopTemperature: AppStartReceiver.temperatureMeasurementService is null !");
                 jsonObject.put("code",-1);
                 return;
             }
             jsonObject.put("code",0);
-            temperatureMeasurementService.stop();
+            AppStartReceiver.temperatureMeasurementService.stop();
         }
         uniJSCallback.invoke(jsonObject);
 
@@ -1280,11 +1268,11 @@ public class FloatUniModule extends UniModule implements SettingProviderInterfac
             return ;
         }
         Log.d(TAG, "setTemperatureDataCallBack: ");
-        if (temperatureMeasurementService == null){
-            Log.d(TAG, "setTemperatureDataCallBack: temperatureMeasurementService is null !");
+        if (AppStartReceiver.temperatureMeasurementService == null){
+            Log.d(TAG, "setTemperatureDataCallBack: AppStartReceiver.temperatureMeasurementService is null !");
             return;
         }
-        temperatureMeasurementService.setTemperatureDataCallBack(new Result<CallbackData<TemperatureData>>() {
+        AppStartReceiver.temperatureMeasurementService.setTemperatureDataCallBack(new Result<CallbackData<TemperatureData>>() {
             @Override
             public void onData(CallbackData<TemperatureData> callbackData) {
                 JSONObject jsonObject = new JSONObject();
@@ -1306,11 +1294,11 @@ public class FloatUniModule extends UniModule implements SettingProviderInterfac
             return ;
         }
         Log.d(TAG, "setSystemTime: "+time);
-        if (systemSettingService == null){
-            Log.d(TAG, "setSystemTime: systemSettingService is null !");
+        if (AppStartReceiver.systemSettingService == null){
+            Log.d(TAG, "setSystemTime: AppStartReceiver.systemSettingService is null !");
             return;
         }
-        systemSettingService.setSystemTime(time);
+        AppStartReceiver.systemSettingService.setSystemTime(time);
     }
 
     @UniJSMethod(uiThread = true)
@@ -1435,11 +1423,11 @@ public class FloatUniModule extends UniModule implements SettingProviderInterfac
             return ;
         }
         Log.d(TAG, "rebootSystem: ");
-        if (systemSettingService == null){
-            Log.d(TAG, "rebootSystem: systemSettingService is null !");
+        if (AppStartReceiver.systemSettingService == null){
+            Log.d(TAG, "rebootSystem: AppStartReceiver.systemSettingService is null !");
             return;
         }
-        systemSettingService.rebootSystem();
+        AppStartReceiver.systemSettingService.rebootSystem();
     }
 
     @UniJSMethod(uiThread = true)
@@ -1450,11 +1438,11 @@ public class FloatUniModule extends UniModule implements SettingProviderInterfac
             return ;
         }
         Log.d(TAG, "openGuard: isOpen："+isOpen);
-        if (iLonbonService == null){
-            Log.d(TAG, "openGuard: iLonbonService is null !");
+        if (AppStartReceiver.iLonbonService == null){
+            Log.d(TAG, "openGuard: AppStartReceiver.iLonbonService is null !");
             return;
         }
-        iLonbonService.openGuard(isOpen == 1);
+        AppStartReceiver.iLonbonService.openGuard(isOpen == 1);
 
     }
 
@@ -1468,11 +1456,11 @@ public class FloatUniModule extends UniModule implements SettingProviderInterfac
             return ;
         }
         Log.d(TAG, "initEducation: ");
-        if (educationService == null){
-            Log.d(TAG, "initEducation: educationService is null !");
+        if (AppStartReceiver.educationService == null){
+            Log.d(TAG, "initEducation: AppStartReceiver.educationService is null !");
             return;
         }
-        educationService.init();
+        AppStartReceiver.educationService.init();
     }
 
     @UniJSMethod(uiThread = true)
@@ -1483,11 +1471,11 @@ public class FloatUniModule extends UniModule implements SettingProviderInterfac
             return ;
         }
         Log.d(TAG, "enterLiveShow: ");
-        if (educationService == null){
-            Log.d(TAG, "enterLiveShow: educationService is null !");
+        if (AppStartReceiver.educationService == null){
+            Log.d(TAG, "enterLiveShow: AppStartReceiver.educationService is null !");
             return;
         }
-        educationService.showEducation();
+        AppStartReceiver.educationService.showEducation();
     }
 
     @UniJSMethod(uiThread = true)
@@ -1498,11 +1486,11 @@ public class FloatUniModule extends UniModule implements SettingProviderInterfac
             return ;
         }
         Log.d(TAG, "exitLiveShow: ");
-        if (educationService == null){
-            Log.d(TAG, "exitLiveShow: educationService is null !");
+        if (AppStartReceiver.educationService == null){
+            Log.d(TAG, "exitLiveShow: AppStartReceiver.educationService is null !");
             return;
         }
-        educationService.exitEducation();
+        AppStartReceiver.educationService.exitEducation();
     }
 
     @UniJSMethod(uiThread = true)
@@ -1513,12 +1501,12 @@ public class FloatUniModule extends UniModule implements SettingProviderInterfac
             return ;
         }
         Log.d(TAG, "syncGetEducationTaskList: ");
-        if (educationService == null){
-            Log.d(TAG, "syncGetEducationTaskList: educationService is null !");
+        if (AppStartReceiver.educationService == null){
+            Log.d(TAG, "syncGetEducationTaskList: AppStartReceiver.educationService is null !");
             return;
         }
         JSONObject jsonObject = new JSONObject();
-        jsonObject.put("educationTaskList", new Gson().toJson(educationService.getEducationTask()));
+        jsonObject.put("educationTaskList", new Gson().toJson(AppStartReceiver.educationService.getEducationTask()));
         uniJSCallback.invoke(jsonObject);
     }
 
@@ -1530,11 +1518,11 @@ public class FloatUniModule extends UniModule implements SettingProviderInterfac
             return ;
         }
         Log.d(TAG, "enterEducationTask: ");
-        if (educationService == null){
-            Log.d(TAG, "enterEducationTask: educationService is null !");
+        if (AppStartReceiver.educationService == null){
+            Log.d(TAG, "enterEducationTask: AppStartReceiver.educationService is null !");
             return;
         }
-        educationService.showEducationTask();
+        AppStartReceiver.educationService.showEducationTask();
     }
 
     @UniJSMethod(uiThread = true)
@@ -1545,11 +1533,11 @@ public class FloatUniModule extends UniModule implements SettingProviderInterfac
             return ;
         }
         Log.d(TAG, "exitEducationTask: ");
-        if (educationService == null){
-            Log.d(TAG, "exitEducationTask: educationService is null !");
+        if (AppStartReceiver.educationService == null){
+            Log.d(TAG, "exitEducationTask: AppStartReceiver.educationService is null !");
             return;
         }
-        educationService.exitEducationTask();
+        AppStartReceiver.educationService.exitEducationTask();
     }
 
     @UniJSMethod(uiThread = true)
@@ -1560,11 +1548,11 @@ public class FloatUniModule extends UniModule implements SettingProviderInterfac
             return ;
         }
         Log.d(TAG, "setEducationStateListener: ");
-        if (educationService == null){
-            Log.d(TAG, "setEducationStateListener: educationService is null !");
+        if (AppStartReceiver.educationService == null){
+            Log.d(TAG, "setEducationStateListener: AppStartReceiver.educationService is null !");
             return;
         }
-        educationService.setEducationTaskStateListener(new Result<EducationTaskStateBean>() {
+        AppStartReceiver.educationService.setEducationTaskStateListener(new Result<EducationTaskStateBean>() {
             @Override
             public void onData(EducationTaskStateBean educationTaskStateBean) {
                 Log.d(TAG, "educationTaskStateBean: " + educationTaskStateBean);
@@ -1583,11 +1571,11 @@ public class FloatUniModule extends UniModule implements SettingProviderInterfac
             return ;
         }
         Log.d(TAG, "hdmiOpen: " + outputConfigure);
-        if (educationService == null){
-            Log.d(TAG, "hdmiOpen: educationService is null !");
+        if (AppStartReceiver.educationService == null){
+            Log.d(TAG, "hdmiOpen: AppStartReceiver.educationService is null !");
             return;
         }
-        educationService.setHDMIConfigure(outputConfigure);
+        AppStartReceiver.educationService.setHDMIConfigure(outputConfigure);
     }
 
     @UniJSMethod(uiThread = true)
@@ -1598,11 +1586,11 @@ public class FloatUniModule extends UniModule implements SettingProviderInterfac
             return ;
         }
         Log.d(TAG, "audioSyncOutput: " + enable);
-        if (educationService == null){
-            Log.d(TAG, "audioSyncOutput: educationService is null  !");
+        if (AppStartReceiver.educationService == null){
+            Log.d(TAG, "audioSyncOutput: AppStartReceiver.educationService is null  !");
             return;
         }
-        educationService.setAudioSyncOutput(enable);
+        AppStartReceiver.educationService.setAudioSyncOutput(enable);
     }
 
     @UniJSMethod(uiThread = true)
@@ -1613,11 +1601,11 @@ public class FloatUniModule extends UniModule implements SettingProviderInterfac
             return ;
         }
         Log.d(TAG, "setHdmiStatusListener: ");
-        if (educationService == null){
-            Log.d(TAG, "setHdmiStatusListener: educationService is null !");
+        if (AppStartReceiver.educationService == null){
+            Log.d(TAG, "setHdmiStatusListener: AppStartReceiver.educationService is null !");
             return;
         }
-        educationService.setHdmiStatusListener(new Result<Boolean>() {
+        AppStartReceiver.educationService.setHdmiStatusListener(new Result<Boolean>() {
             @Override
             public void onData(Boolean aBoolean) {
                 Log.d(TAG, "hdmiStatusListener: " + aBoolean);
@@ -1636,12 +1624,12 @@ public class FloatUniModule extends UniModule implements SettingProviderInterfac
             return ;
         }
         Log.d(TAG, "syncGetHdmiStatus: ");
-        if (educationService == null){
-            Log.d(TAG, "syncGetHdmiStatus: educationService is null !");
+        if (AppStartReceiver.educationService == null){
+            Log.d(TAG, "syncGetHdmiStatus: AppStartReceiver.educationService is null !");
             return;
         }
         JSONObject jsonObject = new JSONObject();
-        jsonObject.put("hdmiStatus", educationService.getHdmiStatus());
+        jsonObject.put("hdmiStatus", AppStartReceiver.educationService.getHdmiStatus());
         uniJSCallback.invoke(jsonObject);
     }
 
@@ -1653,11 +1641,11 @@ public class FloatUniModule extends UniModule implements SettingProviderInterfac
             return ;
         }
         Log.d(TAG, "hornControlSwitch: " + isOpen);
-        if (educationService == null){
-            Log.d(TAG, "hornControlSwitch: educationService is null  !");
+        if (AppStartReceiver.educationService == null){
+            Log.d(TAG, "hornControlSwitch: AppStartReceiver.educationService is null  !");
             return;
         }
-        educationService.setHornControlSwitch(isOpen);
+        AppStartReceiver.educationService.setHornControlSwitch(isOpen);
     }
 
     /***********************************广播相关***********************************************/
@@ -1670,11 +1658,11 @@ public class FloatUniModule extends UniModule implements SettingProviderInterfac
             return ;
         }
         Log.d(TAG, "initBroadcast: ");
-        if (broadcastService == null){
-            Log.d(TAG, "initBroadcast: broadcastService is null !");
+        if (AppStartReceiver.broadcastService == null){
+            Log.d(TAG, "initBroadcast: AppStartReceiver.broadcastService is null !");
             return;
         }
-        broadcastService.initSpeakBroadcast();
+        AppStartReceiver.broadcastService.initSpeakBroadcast();
     }
 
     @UniJSMethod(uiThread = true)
@@ -1685,11 +1673,11 @@ public class FloatUniModule extends UniModule implements SettingProviderInterfac
             return ;
         }
         Log.d(TAG, "setOnIONotifyListener: ");
-        if (broadcastService == null){
-            Log.d(TAG, "setOnIONotifyListener: broadcastService is null !");
+        if (AppStartReceiver.broadcastService == null){
+            Log.d(TAG, "setOnIONotifyListener: AppStartReceiver.broadcastService is null !");
             return;
         }
-        broadcastService.onIONotifyListener(new Result<Integer>() {
+        AppStartReceiver.broadcastService.onIONotifyListener(new Result<Integer>() {
             @Override
             public void onData(Integer data) {
                 Log.d(TAG, "onData: " + data);
@@ -1708,11 +1696,11 @@ public class FloatUniModule extends UniModule implements SettingProviderInterfac
             return ;
         }
         Log.d(TAG, "setOnSpeakBroadcastListener: ");
-        if (broadcastService == null){
-            Log.d(TAG, "setOnSpeakBroadcastListener: broadcastService is null !");
+        if (AppStartReceiver.broadcastService == null){
+            Log.d(TAG, "setOnSpeakBroadcastListener: AppStartReceiver.broadcastService is null !");
             return;
         }
-        broadcastService.onSpeakBroadcastListener(new Result<SpeakBroadcastState>() {
+        AppStartReceiver.broadcastService.onSpeakBroadcastListener(new Result<SpeakBroadcastState>() {
             @Override
             public void onData(SpeakBroadcastState data) {
                 Log.d(TAG, "onData: " + data);
@@ -1732,11 +1720,11 @@ public class FloatUniModule extends UniModule implements SettingProviderInterfac
             return ;
         }
         Log.d(TAG, "setOnToastListener: ");
-        if (broadcastService == null){
-            Log.d(TAG, "setOnToastListener: broadcastService is null !");
+        if (AppStartReceiver.broadcastService == null){
+            Log.d(TAG, "setOnToastListener: AppStartReceiver.broadcastService is null !");
             return;
         }
-        broadcastService.onToastListener(new Result<String>() {
+        AppStartReceiver.broadcastService.onToastListener(new Result<String>() {
             @Override
             public void onData(String s) {
                 Log.d(TAG, "onToastListener" + s);
@@ -1755,8 +1743,8 @@ public class FloatUniModule extends UniModule implements SettingProviderInterfac
             return ;
         }
         Log.d(TAG, "addBroadcastObj: ");
-        if (broadcastService == null){
-            Log.d(TAG, "addBroadcastObj: broadcastService is null !");
+        if (AppStartReceiver.broadcastService == null){
+            Log.d(TAG, "addBroadcastObj: AppStartReceiver.broadcastService is null !");
             return;
         }
 
@@ -1767,12 +1755,12 @@ public class FloatUniModule extends UniModule implements SettingProviderInterfac
         AreaDivision areaDivision = new AreaDivision();
         areaDivision.setDisplayNum(num);
         areaDivision.setMasterNum(num / 1000);
-        if (!areaDivisionArrayList.contains(areaDivision)) {
-            areaDivisionArrayList.add(areaDivision);
+        if (!AppStartReceiver.areaDivisionArrayList.contains(areaDivision)) {
+            AppStartReceiver.areaDivisionArrayList.add(areaDivision);
         }
 
         JSONObject jsonObject = new JSONObject();
-        jsonObject.put("broadcastDevices", new Gson().toJson(areaDivisionArrayList));
+        jsonObject.put("broadcastDevices", new Gson().toJson(AppStartReceiver.areaDivisionArrayList));
         uniJSCallback.invoke(jsonObject);
     }
 
@@ -1784,11 +1772,11 @@ public class FloatUniModule extends UniModule implements SettingProviderInterfac
             return ;
         }
         Log.d(TAG, "addBroadcastObj: ");
-        if (broadcastService == null){
-            Log.d(TAG, "addBroadcastObj: broadcastService is null !");
+        if (AppStartReceiver.broadcastService == null){
+            Log.d(TAG, "addBroadcastObj: AppStartReceiver.broadcastService is null !");
             return;
         }
-        areaDivisionArrayList.clear();
+        AppStartReceiver.areaDivisionArrayList.clear();
     }
 
     @UniJSMethod(uiThread = true)
@@ -1799,14 +1787,14 @@ public class FloatUniModule extends UniModule implements SettingProviderInterfac
             return ;
         }
         Log.d(TAG, "setSpeakBroadcastDevice: ");
-        if (broadcastService == null){
-            Log.d(TAG, "setSpeakBroadcastDevice: broadcastService is null !");
+        if (AppStartReceiver.broadcastService == null){
+            Log.d(TAG, "setSpeakBroadcastDevice: AppStartReceiver.broadcastService is null !");
             return;
         }
-        for (int i = 0; i < areaDivisionArrayList.size(); i++) {
-            Log.d(TAG, "setSpeakBroadcastDevice: " + areaDivisionArrayList.get(i));
+        for (int i = 0; i < AppStartReceiver.areaDivisionArrayList.size(); i++) {
+            Log.d(TAG, "setSpeakBroadcastDevice: " + AppStartReceiver.areaDivisionArrayList.get(i));
         }
-        broadcastService.setSpeakBroadcastDevice(areaDivisionArrayList);
+        AppStartReceiver.broadcastService.setSpeakBroadcastDevice(AppStartReceiver.areaDivisionArrayList);
     }
 
     @UniJSMethod(uiThread = true)
@@ -1817,11 +1805,11 @@ public class FloatUniModule extends UniModule implements SettingProviderInterfac
             return ;
         }
         Log.d(TAG, "startSpeakBroadcast: ");
-        if (broadcastService == null){
-            Log.d(TAG, "startSpeakBroadcast: broadcastService is null !");
+        if (AppStartReceiver.broadcastService == null){
+            Log.d(TAG, "startSpeakBroadcast: AppStartReceiver.broadcastService is null !");
             return;
         }
-        broadcastService.startSpeakBroadcast(data);
+        AppStartReceiver.broadcastService.startSpeakBroadcast(data);
     }
 
     @UniJSMethod(uiThread = true)
@@ -1832,11 +1820,11 @@ public class FloatUniModule extends UniModule implements SettingProviderInterfac
             return ;
         }
         Log.d(TAG, "stopSpeakBroadcast: ");
-        if (broadcastService == null){
-            Log.d(TAG, "stopSpeakBroadcast: broadcastService is null !");
+        if (AppStartReceiver.broadcastService == null){
+            Log.d(TAG, "stopSpeakBroadcast: AppStartReceiver.broadcastService is null !");
             return;
         }
-        broadcastService.stopSpeakBroadcast(data);
+        AppStartReceiver.broadcastService.stopSpeakBroadcast(data);
     }
 
     @UniJSMethod(uiThread = true)
@@ -1847,11 +1835,11 @@ public class FloatUniModule extends UniModule implements SettingProviderInterfac
             return ;
         }
         Log.d(TAG, "getMasterDeviceListInfo: ");
-        if (intercomService == null){
-            Log.d(TAG, "getMasterDeviceListInfo: intercomService is null !");
+        if (AppStartReceiver.intercomService == null){
+            Log.d(TAG, "getMasterDeviceListInfo: AppStartReceiver.intercomService is null !");
             return;
         }
-        intercomService.getSubMasterList(new Result<ArrayList<MasterDeviceInfo>>() {
+        AppStartReceiver.intercomService.getSubMasterList(new Result<ArrayList<MasterDeviceInfo>>() {
             @Override
             public void onData(ArrayList<MasterDeviceInfo> masterDeviceInfos) {
                 String gsonString = new Gson().toJson(masterDeviceInfos);
