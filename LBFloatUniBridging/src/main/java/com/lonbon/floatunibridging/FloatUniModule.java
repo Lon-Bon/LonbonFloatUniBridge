@@ -76,7 +76,6 @@ import kotlin.jvm.functions.Function0;
 public class FloatUniModule extends UniModule implements SettingProviderInterface,IntercomProviderInterface,EducationProviderInterface{
 
     private final String TAG = "FloatUniModule";
-    private boolean isConnect = false;
 
     private ArrayList<AreaDivision> areaDivisionArrayList = new ArrayList<>();
     private ScheduledExecutorService singleThreadScheduledExecutor = Executors.newSingleThreadScheduledExecutor();
@@ -98,11 +97,12 @@ public class FloatUniModule extends UniModule implements SettingProviderInterfac
 //        //首先配置开启媒体服务
         IpcManager.INSTANCE.config(Config.Companion.builder().configOpenMedia(true).build());
         //传入上下文
+        Log.d(TAG, "initIPCManager: mUniSDKInstance.getContext()！" + mUniSDKInstance.getContext());
         IpcManager.INSTANCE.init(mUniSDKInstance.getContext());
         IpcManager.INSTANCE.setServerDeath(new Function0<Unit>() {
             @Override
             public Unit invoke() {
-                isConnect = false;
+                AppStartReceiver.isConnect = false;
                 JSONObject jsonObject = new JSONObject();
                 jsonObject.put("code",1);
                 uniJsCallback.invoke(jsonObject);
@@ -117,12 +117,13 @@ public class FloatUniModule extends UniModule implements SettingProviderInterfac
             public void run() {
                 try {
                     Log.i(TAG, "initIPCManager:scheduleWithFixedDelay");
-                    if (!isConnect) {
+                    if (!AppStartReceiver.isConnect) {
+                        Log.i(TAG, "initIPCManager:scheduleWithFixedDelay  1111");
                         //连接服务端，传入的是服务端的包名
                         IpcManager.INSTANCE.open("com.lonbon.lonbon_app", new Function0<Unit>() {
                             @Override
                             public Unit invoke() {
-                                isConnect = true;
+                                AppStartReceiver.isConnect = true;
                                 initService();
                                 JSONObject jsonObject = new JSONObject();
                                 jsonObject.put("code",0);
@@ -132,12 +133,13 @@ public class FloatUniModule extends UniModule implements SettingProviderInterfac
                                 return null;
                             }
                         });
+                        Log.i(TAG, "initIPCManager:scheduleWithFixedDelay  2222");
                     }
                 } catch (Exception e) {
-                    Log.d(TAG, "initIPCManager:scheduleWithFixedDelay: " + e.getMessage());
+                    Log.d(TAG, "initIPCManager:scheduleWithFixedDelay: 3 " + e.getMessage());
                 }
             }
-        }, 0, 1, TimeUnit.SECONDS);
+        }, 0, 5, TimeUnit.SECONDS);
 
     }
 
@@ -214,7 +216,7 @@ public class FloatUniModule extends UniModule implements SettingProviderInterfac
     @UniJSMethod(uiThread = true)
     @Override
     public void setTalkViewPosition(int left, int top, int width, int height) {
-        if (!isConnect){
+        if (!AppStartReceiver.isConnect){
             showToast();
             return ;
         }
@@ -228,7 +230,7 @@ public class FloatUniModule extends UniModule implements SettingProviderInterfac
     @UniJSMethod(uiThread = true)
     @Override
     public void extDoorLampCtrl(int color, int open) {
-        if (!isConnect){
+        if (!AppStartReceiver.isConnect){
             showToast();
             return ;
         }
@@ -243,7 +245,7 @@ public class FloatUniModule extends UniModule implements SettingProviderInterfac
     @UniJSMethod(uiThread = true)
     @Override
     public void onDoorContactValue(UniJSCallback uniJsCallback) {
-        if (!isConnect){
+        if (!AppStartReceiver.isConnect){
             showToast();
             return ;
         }
@@ -266,7 +268,7 @@ public class FloatUniModule extends UniModule implements SettingProviderInterfac
     @UniJSMethod(uiThread = true)
     @Override
     public void asyncGetDeviceListInfo(int areaId, int masterNum, int slaveNum, int devRegType, UniJSCallback uniJsCallback) {
-        if (!isConnect){
+        if (!AppStartReceiver.isConnect){
             showToast();
             return ;
         }
@@ -288,7 +290,7 @@ public class FloatUniModule extends UniModule implements SettingProviderInterfac
     @UniJSMethod(uiThread = true)
     @Override
     public void updateDeviceTalkState(UniJSCallback uniJsCallback) {
-        if (!isConnect){
+        if (!AppStartReceiver.isConnect){
             showToast();
             return ;
         }
@@ -319,7 +321,7 @@ public class FloatUniModule extends UniModule implements SettingProviderInterfac
     @UniJSMethod(uiThread = true)
     @Override
     public void deviceClick(int areaId, int masterNum, int slaveNum, int devRegType) {
-        if (!isConnect){
+        if (!AppStartReceiver.isConnect){
             showToast();
             return ;
         }
@@ -341,7 +343,7 @@ public class FloatUniModule extends UniModule implements SettingProviderInterfac
     @UniJSMethod(uiThread = true)
     @Override
     public void nativeCall(int areaId , int masterNum ,int slaveNum ,int devRegType){
-        if (!isConnect){
+        if (!AppStartReceiver.isConnect){
             showToast();
             return ;
         }
@@ -364,7 +366,7 @@ public class FloatUniModule extends UniModule implements SettingProviderInterfac
     @UniJSMethod(uiThread = true)
     @Override
     public void nativeAnswer(int areaId , int masterNum ,int slaveNum ,int devRegType){
-        if (!isConnect){
+        if (!AppStartReceiver.isConnect){
             showToast();
             return ;
         }
@@ -387,7 +389,7 @@ public class FloatUniModule extends UniModule implements SettingProviderInterfac
     @UniJSMethod(uiThread = true)
     @Override
     public void nativeHangup(int areaId , int masterNum ,int slaveNum ,int devRegType){
-        if (!isConnect){
+        if (!AppStartReceiver.isConnect){
             showToast();
             return ;
         }
@@ -402,7 +404,7 @@ public class FloatUniModule extends UniModule implements SettingProviderInterfac
     @UniJSMethod(uiThread = true)
     @Override
     public void openLockCtrl(int num, int open) {
-        if (!isConnect){
+        if (!AppStartReceiver.isConnect){
             showToast();
             return ;
         }
@@ -416,7 +418,7 @@ public class FloatUniModule extends UniModule implements SettingProviderInterfac
     @UniJSMethod(uiThread = true)
     @Override
     public void getCurrentDeviceInfo(UniJSCallback uniJsCallback) {
-        if (!isConnect){
+        if (!AppStartReceiver.isConnect){
             showToast();
             return ;
         }
@@ -460,7 +462,7 @@ public class FloatUniModule extends UniModule implements SettingProviderInterfac
     @UniJSMethod(uiThread = true)
     @Override
     public void talkEventCallback(UniJSCallback uniJsCallback) {
-        if (!isConnect){
+        if (!AppStartReceiver.isConnect){
             showToast();
             return ;
         }
@@ -492,7 +494,7 @@ public class FloatUniModule extends UniModule implements SettingProviderInterfac
     @UniJSMethod(uiThread = true)
     @Override
     public void onDeviceOnLine(UniJSCallback uniJsCallback) {
-        if (!isConnect){
+        if (!AppStartReceiver.isConnect){
             showToast();
             return ;
         }
@@ -521,7 +523,7 @@ public class FloatUniModule extends UniModule implements SettingProviderInterfac
     @UniJSMethod(uiThread = true)
     @Override
     public void onDeviceOffLine(UniJSCallback uniJsCallback) {
-        if (!isConnect){
+        if (!AppStartReceiver.isConnect){
             showToast();
             return ;
         }
@@ -551,7 +553,7 @@ public class FloatUniModule extends UniModule implements SettingProviderInterfac
     @UniJSMethod(uiThread = true)
     @Override
     public void listenToTalk() {
-        if (!isConnect){
+        if (!AppStartReceiver.isConnect){
             showToast();
             return ;
         }
@@ -564,7 +566,7 @@ public class FloatUniModule extends UniModule implements SettingProviderInterfac
     @UniJSMethod(uiThread = true)
     @Override
     public void hideTalkView(Boolean hide) {
-        if (!isConnect){
+        if (!AppStartReceiver.isConnect){
             showToast();
             return ;
         }
@@ -578,7 +580,7 @@ public class FloatUniModule extends UniModule implements SettingProviderInterfac
     @UniJSMethod(uiThread = true)
     @Override
     public void oneKeyCall() {
-        if (!isConnect){
+        if (!AppStartReceiver.isConnect){
             showToast();
             return ;
         }
@@ -592,7 +594,7 @@ public class FloatUniModule extends UniModule implements SettingProviderInterfac
     @UniJSMethod(uiThread = true)
     @Override
     public void setLocalVideoViewPosition(int left, int top, int width, int height) {
-        if (!isConnect){
+        if (!AppStartReceiver.isConnect){
             showToast();
             return ;
         }
@@ -605,7 +607,7 @@ public class FloatUniModule extends UniModule implements SettingProviderInterfac
     @UniJSMethod(uiThread = true)
     @Override
     public void hideLocalPreView(Boolean hide) {
-        if (!isConnect){
+        if (!AppStartReceiver.isConnect){
             showToast();
             return ;
         }
@@ -618,7 +620,7 @@ public class FloatUniModule extends UniModule implements SettingProviderInterfac
     @UniJSMethod(uiThread = true)
     @Override
     public void setExtMicEna(Boolean enable) {
-        if (!isConnect){
+        if (!AppStartReceiver.isConnect){
             showToast();
             return ;
         }
@@ -632,7 +634,7 @@ public class FloatUniModule extends UniModule implements SettingProviderInterfac
     @UniJSMethod(uiThread = true)
     @Override
     public void openLocalCamera(Boolean isOpen) {
-        if (!isConnect){
+        if (!AppStartReceiver.isConnect){
             showToast();
             return ;
         }
@@ -646,7 +648,7 @@ public class FloatUniModule extends UniModule implements SettingProviderInterfac
     @UniJSMethod(uiThread = true)
     @Override
     public void initFrame() {
-        if (!isConnect){
+        if (!AppStartReceiver.isConnect){
             showToast();
             return ;
         }
@@ -662,7 +664,7 @@ public class FloatUniModule extends UniModule implements SettingProviderInterfac
     @UniJSMethod(uiThread = true)
     @Override
     public void setViewWidthHeight(int width, int height) {
-        if (!isConnect){
+        if (!AppStartReceiver.isConnect){
             showToast();
             return ;
         }
@@ -678,7 +680,7 @@ public class FloatUniModule extends UniModule implements SettingProviderInterfac
     @UniJSMethod(uiThread = true)
     @Override
     public void startTakeFrame() {
-        if (!isConnect){
+        if (!AppStartReceiver.isConnect){
             showToast();
             return ;
         }
@@ -692,7 +694,7 @@ public class FloatUniModule extends UniModule implements SettingProviderInterfac
     @UniJSMethod(uiThread = true)
     @Override
     public void stopTakeFrame() {
-        if (!isConnect){
+        if (!AppStartReceiver.isConnect){
             showToast();
             return ;
         }
@@ -702,7 +704,7 @@ public class FloatUniModule extends UniModule implements SettingProviderInterfac
     @UniJSMethod(uiThread = true)
     @Override
     public void takePicture() {
-        if (!isConnect){
+        if (!AppStartReceiver.isConnect){
             showToast();
             return ;
         }
@@ -712,7 +714,7 @@ public class FloatUniModule extends UniModule implements SettingProviderInterfac
     @UniJSMethod(uiThread = true)
     @Override
     public void takeFrame() {
-        if (!isConnect){
+        if (!AppStartReceiver.isConnect){
             showToast();
             return ;
         }
@@ -761,7 +763,7 @@ public class FloatUniModule extends UniModule implements SettingProviderInterfac
     @UniJSMethod(uiThread = false)
     @Override
     public void setRecordPath(String path, UniJSCallback uniJsCallback) {
-        if (!isConnect){
+        if (!AppStartReceiver.isConnect){
             showToast();
             return ;
         }
@@ -787,7 +789,7 @@ public class FloatUniModule extends UniModule implements SettingProviderInterfac
     @UniJSMethod(uiThread = false)
     @Override
     public void getFileList(String path, UniJSCallback uniJsCallback) {
-        if (!isConnect){
+        if (!AppStartReceiver.isConnect){
             showToast();
             return ;
         }
@@ -820,7 +822,7 @@ public class FloatUniModule extends UniModule implements SettingProviderInterfac
     @UniJSMethod(uiThread = false)
     @Override
     public void deleteFile(String path, UniJSCallback uniJsCallback) {
-        if (!isConnect){
+        if (!AppStartReceiver.isConnect){
             showToast();
             return ;
         }
@@ -846,7 +848,7 @@ public class FloatUniModule extends UniModule implements SettingProviderInterfac
     @UniJSMethod(uiThread = true)
     @Override
     public void setSlaveVolume(int volume) {
-        if (!isConnect){
+        if (!AppStartReceiver.isConnect){
             showToast();
             return ;
         }
@@ -867,7 +869,7 @@ public class FloatUniModule extends UniModule implements SettingProviderInterfac
     public void syncGetSlaveVolume(UniJSCallback uniJSCallback) {
         Log.d(TAG, "syncGetSlaveVolume: ");
         JSONObject jsonObject = new JSONObject();
-        if (!isConnect){
+        if (!AppStartReceiver.isConnect){
             showToast();
             jsonObject.put("slaveVolume", 3);
         }else {
@@ -936,7 +938,7 @@ public class FloatUniModule extends UniModule implements SettingProviderInterfac
     public void syncStartCard(UniJSCallback uniJSCallback){
         Log.d(TAG, "syncStartCard: ");
         JSONObject jsonObject = new JSONObject();
-        if (!isConnect){
+        if (!AppStartReceiver.isConnect){
             showToast();
             jsonObject.put("code",-1);
         }else {
@@ -959,7 +961,7 @@ public class FloatUniModule extends UniModule implements SettingProviderInterfac
     public void syncStopCard(UniJSCallback uniJSCallback){
         Log.d(TAG, "syncStopCard: ");
         JSONObject jsonObject = new JSONObject();
-        if (!isConnect){
+        if (!AppStartReceiver.isConnect){
             showToast();
             jsonObject.put("code",-1);
         }else {
@@ -982,7 +984,7 @@ public class FloatUniModule extends UniModule implements SettingProviderInterfac
     @UniJSMethod(uiThread = true)
     @Override
     public void setCardDataCallBack(UniJSCallback uniJSCallback){
-        if (!isConnect){
+        if (!AppStartReceiver.isConnect){
             showToast();
             return ;
         }
@@ -1009,7 +1011,7 @@ public class FloatUniModule extends UniModule implements SettingProviderInterfac
     public void syncStartFinger(UniJSCallback uniJSCallback) {
         Log.d(TAG, "syncStartFinger: ");
         JSONObject jsonObject = new JSONObject();
-        if (!isConnect){
+        if (!AppStartReceiver.isConnect){
             showToast();
             jsonObject.put("code",-1);
         }else {
@@ -1030,7 +1032,7 @@ public class FloatUniModule extends UniModule implements SettingProviderInterfac
     public void syncStopFinger(UniJSCallback uniJSCallback) {
         Log.d(TAG, "syncStopFinger: ");
         JSONObject jsonObject = new JSONObject();
-        if (!isConnect){
+        if (!AppStartReceiver.isConnect){
             showToast();
             jsonObject.put("code",-1);
         }else {
@@ -1093,7 +1095,7 @@ public class FloatUniModule extends UniModule implements SettingProviderInterfac
     @UniJSMethod(uiThread = true)
     @Override
     public void setFingerprintFeatureCallBack(UniJSCallback uniJSCallback) {
-        if (!isConnect){
+        if (!AppStartReceiver.isConnect){
             showToast();
             return ;
         }
@@ -1118,7 +1120,7 @@ public class FloatUniModule extends UniModule implements SettingProviderInterfac
     @UniJSMethod(uiThread = true)
     @Override
     public void setFingerprintFeatureLeftNumCallBack(UniJSCallback uniJSCallback) {
-        if (!isConnect){
+        if (!AppStartReceiver.isConnect){
             showToast();
             return ;
         }
@@ -1143,7 +1145,7 @@ public class FloatUniModule extends UniModule implements SettingProviderInterfac
     @UniJSMethod(uiThread = true)
     @Override
     public void setCompareFingerprintCallBack(UniJSCallback uniJSCallback) {
-        if (!isConnect){
+        if (!AppStartReceiver.isConnect){
             showToast();
             return ;
         }
@@ -1174,7 +1176,7 @@ public class FloatUniModule extends UniModule implements SettingProviderInterfac
     @UniJSMethod(uiThread = true)
     @Override
     public void clearFingerprintById(String id) {
-        if (!isConnect){
+        if (!AppStartReceiver.isConnect){
             showToast();
             return ;
         }
@@ -1194,7 +1196,7 @@ public class FloatUniModule extends UniModule implements SettingProviderInterfac
     @UniJSMethod(uiThread = true)
     @Override
     public void clearFingerprintByFeature(String feature) {
-        if (!isConnect){
+        if (!AppStartReceiver.isConnect){
             showToast();
             return ;
         }
@@ -1212,7 +1214,7 @@ public class FloatUniModule extends UniModule implements SettingProviderInterfac
     @UniJSMethod(uiThread = true)
     @Override
     public void clearAllFingerprint() {
-        if (!isConnect){
+        if (!AppStartReceiver.isConnect){
             showToast();
             return ;
         }
@@ -1231,7 +1233,7 @@ public class FloatUniModule extends UniModule implements SettingProviderInterfac
     public void syncStartTemperature(UniJSCallback uniJSCallback) {
         Log.d(TAG, "syncStartTemperature: ");
         JSONObject jsonObject = new JSONObject();
-        if (!isConnect){
+        if (!AppStartReceiver.isConnect){
             showToast();
             jsonObject.put("code",-1);
         }else {
@@ -1253,7 +1255,7 @@ public class FloatUniModule extends UniModule implements SettingProviderInterfac
     public void syncStopTemperature(UniJSCallback uniJSCallback) {
         Log.d(TAG, "syncStopTemperature: ");
         JSONObject jsonObject = new JSONObject();
-        if (!isConnect){
+        if (!AppStartReceiver.isConnect){
             showToast();
             jsonObject.put("code",-1);
         }else {
@@ -1273,7 +1275,7 @@ public class FloatUniModule extends UniModule implements SettingProviderInterfac
     @UniJSMethod(uiThread = true)
     @Override
     public void setTemperatureDataCallBack(UniJSCallback uniJSCallback) {
-        if (!isConnect){
+        if (!AppStartReceiver.isConnect){
             showToast();
             return ;
         }
@@ -1299,7 +1301,7 @@ public class FloatUniModule extends UniModule implements SettingProviderInterfac
     @UniJSMethod(uiThread = true)
     @Override
     public void setSystemTime(long time) {
-        if (!isConnect){
+        if (!AppStartReceiver.isConnect){
             showToast();
             return ;
         }
@@ -1428,7 +1430,7 @@ public class FloatUniModule extends UniModule implements SettingProviderInterfac
     @UniJSMethod(uiThread = true)
     @Override
     public void rebootSystem() {
-        if (!isConnect){
+        if (!AppStartReceiver.isConnect){
             showToast();
             return ;
         }
@@ -1443,7 +1445,7 @@ public class FloatUniModule extends UniModule implements SettingProviderInterfac
     @UniJSMethod(uiThread = true)
     @Override
     public void openGuard(int isOpen) {
-        if (!isConnect){
+        if (!AppStartReceiver.isConnect){
             showToast();
             return ;
         }
@@ -1461,7 +1463,7 @@ public class FloatUniModule extends UniModule implements SettingProviderInterfac
     @UniJSMethod(uiThread = true)
     @Override
     public void initEducation() {
-        if (!isConnect){
+        if (!AppStartReceiver.isConnect){
             showToast();
             return ;
         }
@@ -1476,7 +1478,7 @@ public class FloatUniModule extends UniModule implements SettingProviderInterfac
     @UniJSMethod(uiThread = true)
     @Override
     public void enterLiveShow() {
-        if (!isConnect){
+        if (!AppStartReceiver.isConnect){
             showToast();
             return ;
         }
@@ -1491,7 +1493,7 @@ public class FloatUniModule extends UniModule implements SettingProviderInterfac
     @UniJSMethod(uiThread = true)
     @Override
     public void exitLiveShow() {
-        if (!isConnect){
+        if (!AppStartReceiver.isConnect){
             showToast();
             return ;
         }
@@ -1506,7 +1508,7 @@ public class FloatUniModule extends UniModule implements SettingProviderInterfac
     @UniJSMethod(uiThread = true)
     @Override
     public void syncGetEducationTaskList(UniJSCallback uniJSCallback) {
-        if (!isConnect){
+        if (!AppStartReceiver.isConnect){
             showToast();
             return ;
         }
@@ -1523,7 +1525,7 @@ public class FloatUniModule extends UniModule implements SettingProviderInterfac
     @UniJSMethod(uiThread = true)
     @Override
     public void enterEducationTask() {
-        if (!isConnect){
+        if (!AppStartReceiver.isConnect){
             showToast();
             return ;
         }
@@ -1538,7 +1540,7 @@ public class FloatUniModule extends UniModule implements SettingProviderInterfac
     @UniJSMethod(uiThread = true)
     @Override
     public void exitEducationTask() {
-        if (!isConnect){
+        if (!AppStartReceiver.isConnect){
             showToast();
             return ;
         }
@@ -1553,7 +1555,7 @@ public class FloatUniModule extends UniModule implements SettingProviderInterfac
     @UniJSMethod(uiThread = true)
     @Override
     public void setEducationStateListener(UniJSCallback uniJSCallback) {
-        if (!isConnect){
+        if (!AppStartReceiver.isConnect){
             showToast();
             return ;
         }
@@ -1576,7 +1578,7 @@ public class FloatUniModule extends UniModule implements SettingProviderInterfac
     @UniJSMethod(uiThread = true)
     @Override
     public void hdmiOpen(int outputConfigure) {
-        if (!isConnect){
+        if (!AppStartReceiver.isConnect){
             showToast();
             return ;
         }
@@ -1591,7 +1593,7 @@ public class FloatUniModule extends UniModule implements SettingProviderInterfac
     @UniJSMethod(uiThread = true)
     @Override
     public void audioSyncOutput(int enable) {
-        if (!isConnect){
+        if (!AppStartReceiver.isConnect){
             showToast();
             return ;
         }
@@ -1606,7 +1608,7 @@ public class FloatUniModule extends UniModule implements SettingProviderInterfac
     @UniJSMethod(uiThread = true)
     @Override
     public void setHdmiStatusListener(UniJSCallback uniJSCallback) {
-        if (!isConnect){
+        if (!AppStartReceiver.isConnect){
             showToast();
             return ;
         }
@@ -1629,7 +1631,7 @@ public class FloatUniModule extends UniModule implements SettingProviderInterfac
     @UniJSMethod(uiThread = true)
     @Override
     public void syncGetHdmiStatus(UniJSCallback uniJSCallback) {
-        if (!isConnect){
+        if (!AppStartReceiver.isConnect){
             showToast();
             return ;
         }
@@ -1646,7 +1648,7 @@ public class FloatUniModule extends UniModule implements SettingProviderInterfac
     @UniJSMethod(uiThread = true)
     @Override
     public void hornControlSwitch(boolean isOpen) {
-        if (!isConnect){
+        if (!AppStartReceiver.isConnect){
             showToast();
             return ;
         }
@@ -1663,7 +1665,7 @@ public class FloatUniModule extends UniModule implements SettingProviderInterfac
     @UniJSMethod(uiThread = true)
     @Override
     public void initBroadcast() {
-        if (!isConnect){
+        if (!AppStartReceiver.isConnect){
             showToast();
             return ;
         }
@@ -1678,7 +1680,7 @@ public class FloatUniModule extends UniModule implements SettingProviderInterfac
     @UniJSMethod(uiThread = true)
     @Override
     public void setOnIONotifyListener(UniJSCallback uniJSCallback) {
-        if (!isConnect){
+        if (!AppStartReceiver.isConnect){
             showToast();
             return ;
         }
@@ -1701,7 +1703,7 @@ public class FloatUniModule extends UniModule implements SettingProviderInterfac
     @UniJSMethod(uiThread = true)
     @Override
     public void setOnSpeakBroadcastListener(UniJSCallback uniJSCallback) {
-        if (!isConnect){
+        if (!AppStartReceiver.isConnect){
             showToast();
             return ;
         }
@@ -1725,7 +1727,7 @@ public class FloatUniModule extends UniModule implements SettingProviderInterfac
     @UniJSMethod(uiThread = true)
     @Override
     public void setOnToastListener(UniJSCallback uniJSCallback) {
-        if (!isConnect){
+        if (!AppStartReceiver.isConnect){
             showToast();
             return ;
         }
@@ -1748,7 +1750,7 @@ public class FloatUniModule extends UniModule implements SettingProviderInterfac
     @UniJSMethod(uiThread = true)
     @Override
     public void addBroadcastObj(int num, UniJSCallback uniJSCallback) {
-        if (!isConnect){
+        if (!AppStartReceiver.isConnect){
             showToast();
             return ;
         }
@@ -1777,7 +1779,7 @@ public class FloatUniModule extends UniModule implements SettingProviderInterfac
     @UniJSMethod(uiThread = true)
     @Override
     public void clearBroadcastObj() {
-        if (!isConnect){
+        if (!AppStartReceiver.isConnect){
             showToast();
             return ;
         }
@@ -1792,7 +1794,7 @@ public class FloatUniModule extends UniModule implements SettingProviderInterfac
     @UniJSMethod(uiThread = true)
     @Override
     public void setSpeakBroadcastDevice() {
-        if (!isConnect){
+        if (!AppStartReceiver.isConnect){
             showToast();
             return ;
         }
@@ -1810,7 +1812,7 @@ public class FloatUniModule extends UniModule implements SettingProviderInterfac
     @UniJSMethod(uiThread = true)
     @Override
     public void startSpeakBroadcast(int data) {
-        if (!isConnect){
+        if (!AppStartReceiver.isConnect){
             showToast();
             return ;
         }
@@ -1825,7 +1827,7 @@ public class FloatUniModule extends UniModule implements SettingProviderInterfac
     @UniJSMethod(uiThread = true)
     @Override
     public void stopSpeakBroadcast(int data) {
-        if (!isConnect){
+        if (!AppStartReceiver.isConnect){
             showToast();
             return ;
         }
@@ -1840,7 +1842,7 @@ public class FloatUniModule extends UniModule implements SettingProviderInterfac
     @UniJSMethod(uiThread = true)
     @Override
     public void getMasterDeviceListInfo(UniJSCallback uniJsCallback) {
-        if (!isConnect){
+        if (!AppStartReceiver.isConnect){
             showToast();
             return ;
         }
