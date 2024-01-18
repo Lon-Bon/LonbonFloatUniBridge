@@ -95,7 +95,9 @@ public class FloatUniModule extends UniModule implements SettingProviderInterfac
                     JSONObject jsonObject = new JSONObject();
                     jsonObject.put("code",1);
                     if (ipcStateUniJSCallback != null) {
-                        ipcStateUniJSCallback.invoke(jsonObject);
+                        ipcStateUniJSCallback.invokeAndKeepAlive(jsonObject);
+                    } else {
+                        Log.i(TAG, "initIPCManager ipcStateUniJSCallback null 3");
                     }
                     Log.d(TAG, "initIPCManager:serverDeath: 服务链接断开！");
                     Log.d(TAG, "initIPCManager:serverDeath: 服务链接开始重连！");
@@ -122,7 +124,9 @@ public class FloatUniModule extends UniModule implements SettingProviderInterfac
                         JSONObject jsonObject = new JSONObject();
                         jsonObject.put("code", 0);
                         if (ipcStateUniJSCallback != null) {
-                            ipcStateUniJSCallback.invoke(jsonObject);
+                            ipcStateUniJSCallback.invokeAndKeepAlive(jsonObject);
+                        } else {
+                            Log.i(TAG, "initIPCManager ipcStateUniJSCallback null 1");
                         }
                         Log.d(TAG, "initIPCManager:linkIpc: 服务链接成功！");
                     } else {
@@ -130,7 +134,9 @@ public class FloatUniModule extends UniModule implements SettingProviderInterfac
                         JSONObject jsonObject = new JSONObject();
                         jsonObject.put("code", 1);
                         if (ipcStateUniJSCallback != null) {
-                            ipcStateUniJSCallback.invoke(jsonObject);
+                            ipcStateUniJSCallback.invokeAndKeepAlive(jsonObject);
+                        } else {
+                            Log.i(TAG, "initIPCManager ipcStateUniJSCallback null 2");
                         }
                         Log.d(TAG, "initIPCManager:linkIpc: 服务链接失败！");
                         Log.d(TAG, "initIPCManager:linkIpc: 服务链接开始重连！");
