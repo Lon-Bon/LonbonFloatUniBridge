@@ -49,9 +49,6 @@ import java.io.File;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
-import java.util.concurrent.Executors;
-import java.util.concurrent.ScheduledExecutorService;
-import java.util.concurrent.TimeUnit;
 
 import io.dcloud.feature.uniapp.annotation.UniJSMethod;
 import io.dcloud.feature.uniapp.bridge.UniJSCallback;
@@ -78,32 +75,42 @@ public class FloatUniModule extends UniModule implements SettingProviderInterfac
 
     private final String TAG = "FloatUniModule";
 
+    private UniJSCallback ipcStateUniJSCallback;
+
     @UniJSMethod(uiThread = true)
-    public void initIPCManager(UniJSCallback uniJsCallback){
+    public void initIPCManager(UniJSCallback uniJsCallback) {
         Log.i(TAG, "initIPCManager");
-        //首先配置开启媒体服务
-        IpcManager.INSTANCE.config(Config.Companion.builder().configOpenMedia(true).build());
-        //传入上下文
-        IpcManager.INSTANCE.init(mUniSDKInstance.getContext());
-        //监听IPC服务断开
-        IpcManager.INSTANCE.setServerDeath(new Function0<Unit>() {
-            @Override
-            public Unit invoke() {
-                Singleton.getSingleton().setConnect(false);
-                JSONObject jsonObject = new JSONObject();
-                jsonObject.put("code",1);
-                uniJsCallback.invokeAndKeepAlive(jsonObject);
-                Log.d(TAG, "initIPCManager:serverDeath: 服务链接断开！");
-                Log.d(TAG, "initIPCManager:serverDeath: 服务链接开始重连！");
-                linkIpc(uniJsCallback);
-                return null;
-            }
-        });
-        //连接IPC服务
-        linkIpc(uniJsCallback);
+        ipcStateUniJSCallback = uniJsCallback;
+        if (!Singleton.getSingleton().isInitIpc()) {
+            Singleton.getSingleton().setInitIpc(true);
+            //首先配置开启媒体服务
+            IpcManager.INSTANCE.config(Config.Companion.builder().configOpenMedia(true).build());
+            //传入上下文
+            IpcManager.INSTANCE.init(mUniSDKInstance.getContext());
+            //监听IPC服务断开
+            IpcManager.INSTANCE.setServerDeath(new Function0<Unit>() {
+                @Override
+                public Unit invoke() {
+                    Singleton.getSingleton().setConnect(false);
+                    JSONObject jsonObject = new JSONObject();
+                    jsonObject.put("code",1);
+                    if (ipcStateUniJSCallback != null) {
+                        ipcStateUniJSCallback.invoke(jsonObject);
+                    }
+                    Log.d(TAG, "initIPCManager:serverDeath: 服务链接断开！");
+                    Log.d(TAG, "initIPCManager:serverDeath: 服务链接开始重连！");
+                    linkIpc();
+                    return null;
+                }
+            });
+            //连接IPC服务
+            linkIpc();
+        } else {
+            Log.i(TAG, "initIPCManager already Init");
+        }
     }
 
-    private void linkIpc(UniJSCallback uniJsCallback) {
+    private void linkIpc() {
         Log.i(TAG, "initIPCManager linkIpc");
         if (!Singleton.getSingleton().isConnect()) {
             Log.i(TAG, "initIPCManager open");
@@ -114,16 +121,20 @@ public class FloatUniModule extends UniModule implements SettingProviderInterfac
                         Singleton.getSingleton().setConnect(true);
                         JSONObject jsonObject = new JSONObject();
                         jsonObject.put("code", 0);
-                        uniJsCallback.invokeAndKeepAlive(jsonObject);
+                        if (ipcStateUniJSCallback != null) {
+                            ipcStateUniJSCallback.invoke(jsonObject);
+                        }
                         Log.d(TAG, "initIPCManager:linkIpc: 服务链接成功！");
                     } else {
                         Singleton.getSingleton().setConnect(false);
                         JSONObject jsonObject = new JSONObject();
                         jsonObject.put("code", 1);
-                        uniJsCallback.invokeAndKeepAlive(jsonObject);
+                        if (ipcStateUniJSCallback != null) {
+                            ipcStateUniJSCallback.invoke(jsonObject);
+                        }
                         Log.d(TAG, "initIPCManager:linkIpc: 服务链接失败！");
                         Log.d(TAG, "initIPCManager:linkIpc: 服务链接开始重连！");
-                        linkIpc(uniJsCallback);
+                        linkIpc();
                     }
                     return null;
                 }

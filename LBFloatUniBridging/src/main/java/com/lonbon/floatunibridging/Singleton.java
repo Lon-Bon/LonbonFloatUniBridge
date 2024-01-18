@@ -21,9 +21,18 @@ public class Singleton {
         return singleton;
     }
 
+    private boolean isInitIpc = false;
     private boolean isConnect = false;
     private boolean hasStartExecutor = false;
     private ArrayList<AreaDivision> areaDivisionArrayList = new ArrayList<>();
+
+    public boolean isInitIpc() {
+        return isInitIpc;
+    }
+
+    public void setInitIpc(boolean initIpc) {
+        isInitIpc = initIpc;
+    }
 
     public boolean isConnect() {
         return isConnect;
