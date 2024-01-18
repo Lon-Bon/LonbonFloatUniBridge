@@ -9,20 +9,7 @@ import android.content.pm.PackageManager;
 import android.text.TextUtils;
 import android.util.Log;
 
-import com.lb.extend.security.broadcast.AreaDivision;
-import com.lb.extend.security.broadcast.IBroadcastService;
-import com.lb.extend.security.card.SwingCardService;
-import com.lb.extend.security.education.EducationService;
-import com.lb.extend.security.fingerprint.FingerprintService;
-import com.lb.extend.security.intercom.IntercomService;
-import com.lb.extend.security.setting.SystemSettingService;
-import com.lb.extend.security.temperature.TemperatureMeasurementService;
-import com.lb.extend.service.ILonbonService;
-
-import java.util.ArrayList;
 import java.util.List;
-import java.util.concurrent.Executors;
-import java.util.concurrent.ScheduledExecutorService;
 
 /**
  * *****************************************************************************
@@ -43,23 +30,6 @@ import java.util.concurrent.ScheduledExecutorService;
 public class AppStartReceiver extends BroadcastReceiver {
 
     private String TAG = "AppStartReceiver";
-
-    public static boolean isConnect = false;
-    public static boolean hasStartExecutor = false;
-
-    public static ArrayList<AreaDivision> areaDivisionArrayList = new ArrayList<>();
-    public static ScheduledExecutorService singleThreadScheduledExecutor = Executors.newSingleThreadScheduledExecutor();
-    /**
-     * 获取服务类
-     */
-    public static ILonbonService iLonbonService;
-    public static IntercomService intercomService ;
-    public static SwingCardService swingCardService ;
-    public static SystemSettingService systemSettingService ;
-    public static TemperatureMeasurementService temperatureMeasurementService ;
-    public static FingerprintService fingerprintService ;
-    public static EducationService educationService;
-    public static IBroadcastService broadcastService;
 
     @Override
     public void onReceive(Context context, Intent intent) {

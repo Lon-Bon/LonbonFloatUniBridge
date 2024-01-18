@@ -58,6 +58,7 @@ import io.dcloud.feature.uniapp.bridge.UniJSCallback;
 import io.dcloud.feature.uniapp.common.UniModule;
 import kotlin.Unit;
 import kotlin.jvm.functions.Function0;
+import kotlin.jvm.functions.Function1;
 
 /**
  * *****************************************************************************
@@ -79,83 +80,63 @@ public class FloatUniModule extends UniModule implements SettingProviderInterfac
 
     @UniJSMethod(uiThread = true)
     public void initIPCManager(UniJSCallback uniJsCallback){
-
-//        //首先配置开启媒体服务
+        Log.i(TAG, "initIPCManager");
+        //首先配置开启媒体服务
         IpcManager.INSTANCE.config(Config.Companion.builder().configOpenMedia(true).build());
         //传入上下文
-        Log.d(TAG, "initIPCManager: mUniSDKInstance.getContext()！" + mUniSDKInstance.getContext());
         IpcManager.INSTANCE.init(mUniSDKInstance.getContext());
+        //监听IPC服务断开
         IpcManager.INSTANCE.setServerDeath(new Function0<Unit>() {
             @Override
             public Unit invoke() {
-                AppStartReceiver.isConnect = false;
+                Singleton.getSingleton().setConnect(false);
                 JSONObject jsonObject = new JSONObject();
                 jsonObject.put("code",1);
-                uniJsCallback.invoke(jsonObject);
+                uniJsCallback.invokeAndKeepAlive(jsonObject);
                 Log.d(TAG, "initIPCManager:serverDeath: 服务链接断开！");
+                Log.d(TAG, "initIPCManager:serverDeath: 服务链接开始重连！");
+                linkIpc(uniJsCallback);
                 return null;
             }
         });
-        if (!AppStartReceiver.hasStartExecutor) {
-            AppStartReceiver.hasStartExecutor = true;
-            Log.i(TAG, "initIPCManager:start singleThreadScheduledExecutor");
-            //不断重连，每秒重连一次，防止掉线
-            AppStartReceiver.singleThreadScheduledExecutor.scheduleWithFixedDelay(new Runnable() {
+        //连接IPC服务
+        linkIpc(uniJsCallback);
+    }
+
+    private void linkIpc(UniJSCallback uniJsCallback) {
+        Log.i(TAG, "initIPCManager linkIpc");
+        if (!Singleton.getSingleton().isConnect()) {
+            Log.i(TAG, "initIPCManager open");
+            IpcManager.INSTANCE.open("com.lonbon.lonbon_app", null, new Function1<Boolean, Unit>() {
                 @Override
-                public void run() {
-                    try {
-                        Log.i(TAG, "initIPCManager:scheduleWithFixedDelay");
-                        if (!AppStartReceiver.isConnect) {
-                            Log.i(TAG, "initIPCManager:scheduleWithFixedDelay  1111");
-                            //连接服务端，传入的是服务端的包名
-                            IpcManager.INSTANCE.open("com.lonbon.lonbon_app", new Function0<Unit>() {
-                                @Override
-                                public Unit invoke() {
-                                    AppStartReceiver.isConnect = true;
-                                    initService();
-                                    JSONObject jsonObject = new JSONObject();
-                                    jsonObject.put("code", 0);
-                                    uniJsCallback.invoke(jsonObject);
-                                    Log.d(TAG, "initIPCManager:invoke: 服务链接成功！");
-                                    Toast.makeText(mUniSDKInstance.getContext(), "服务链接成功！", Toast.LENGTH_LONG).show();
-                                    return null;
-                                }
-                            });
-                            Log.i(TAG, "initIPCManager:scheduleWithFixedDelay  2222");
-                        }
-                    } catch (Exception e) {
-                        Log.d(TAG, "initIPCManager:scheduleWithFixedDelay: 3 " + e.getMessage());
+                public Unit invoke(Boolean aBoolean) {
+                    if (aBoolean) {
+                        Singleton.getSingleton().setConnect(true);
+                        JSONObject jsonObject = new JSONObject();
+                        jsonObject.put("code", 0);
+                        uniJsCallback.invokeAndKeepAlive(jsonObject);
+                        Log.d(TAG, "initIPCManager:linkIpc: 服务链接成功！");
+                    } else {
+                        Singleton.getSingleton().setConnect(false);
+                        JSONObject jsonObject = new JSONObject();
+                        jsonObject.put("code", 1);
+                        uniJsCallback.invokeAndKeepAlive(jsonObject);
+                        Log.d(TAG, "initIPCManager:linkIpc: 服务链接失败！");
+                        Log.d(TAG, "initIPCManager:linkIpc: 服务链接开始重连！");
+                        linkIpc(uniJsCallback);
                     }
+                    return null;
                 }
-            }, 0, 5, TimeUnit.SECONDS);
+            });
         }
     }
-
-    /**
-     * 需要在服务链接成功后才能获取到注册类
-     */
-    private void initService(){
-        AppStartReceiver.iLonbonService = IpcManager.INSTANCE.getService(ILonbonService.class);
-        AppStartReceiver.intercomService = IpcManager.INSTANCE.getService(IntercomService.class);
-        AppStartReceiver.swingCardService = IpcManager.INSTANCE.getService(SwingCardService.class);
-        AppStartReceiver.systemSettingService = IpcManager.INSTANCE.getService(SystemSettingService.class);
-        AppStartReceiver.temperatureMeasurementService = IpcManager.INSTANCE.getService(TemperatureMeasurementService.class);
-        AppStartReceiver.fingerprintService = IpcManager.INSTANCE.getService(FingerprintService.class);
-        AppStartReceiver.educationService = IpcManager.INSTANCE.getService(EducationService.class);
-        AppStartReceiver.broadcastService = IpcManager.INSTANCE.getService(IBroadcastService.class);
-    }
-
 
     //run ui thread
     @UniJSMethod(uiThread = true)
     public void printDeviceInfoTest(UniJSCallback uniJsCallback){
         Log.d(TAG, "printDeviceInfoTest");
         Toast.makeText(mUniSDKInstance.getContext(), TAG, Toast.LENGTH_SHORT).show();
-        if (AppStartReceiver.intercomService == null){
-            Log.d(TAG, "printDeviceInfoTest: AppStartReceiver.intercomService is null !");
-            return;
-        }
-        AppStartReceiver.intercomService.getCurrentDeviceInfo(new Result<LocalDeviceInfo>() {
+        IpcManager.INSTANCE.getService(IntercomService.class).getCurrentDeviceInfo(new Result<LocalDeviceInfo>() {
             @Override
             public void onData(LocalDeviceInfo localDeviceInfo) {
                 Toast.makeText(mUniSDKInstance.getContext(), localDeviceInfo.toString(), Toast.LENGTH_SHORT).show();
@@ -204,45 +185,45 @@ public class FloatUniModule extends UniModule implements SettingProviderInterfac
     @UniJSMethod(uiThread = true)
     @Override
     public void setTalkViewPosition(int left, int top, int width, int height) {
-        if (!AppStartReceiver.isConnect){
+        if (!Singleton.getSingleton().isConnect()){
             showToast();
             return ;
         }
-        if (AppStartReceiver.intercomService == null){
-            Log.d(TAG, "setTalkViewPosition: AppStartReceiver.intercomService is null !");
+        if (IpcManager.INSTANCE.getService(IntercomService.class) == null){
+            Log.d(TAG, "setTalkViewPosition: IpcManager.INSTANCE.getService(IntercomService.class) is null !");
             return;
         }
-        AppStartReceiver.intercomService.setTalkViewPosition(left,top,width,height);
+        IpcManager.INSTANCE.getService(IntercomService.class).setTalkViewPosition(left,top,width,height);
     }
 
     @UniJSMethod(uiThread = true)
     @Override
     public void extDoorLampCtrl(int color, int open) {
-        if (!AppStartReceiver.isConnect){
+        if (!Singleton.getSingleton().isConnect()){
             showToast();
             return ;
         }
         Log.d(TAG, "extDoorLampCtrl: ");
-        if (AppStartReceiver.intercomService == null){
-            Log.d(TAG, "extDoorLampCtrl: AppStartReceiver.intercomService is null !");
+        if (IpcManager.INSTANCE.getService(IntercomService.class) == null){
+            Log.d(TAG, "extDoorLampCtrl: IpcManager.INSTANCE.getService(IntercomService.class) is null !");
             return;
         }
-        AppStartReceiver.intercomService.extDoorLampCtrl(color,open);
+        IpcManager.INSTANCE.getService(IntercomService.class).extDoorLampCtrl(color,open);
     }
 
     @UniJSMethod(uiThread = true)
     @Override
     public void onDoorContactValue(UniJSCallback uniJsCallback) {
-        if (!AppStartReceiver.isConnect){
+        if (!Singleton.getSingleton().isConnect()){
             showToast();
             return ;
         }
         Log.d(TAG, "onDoorContactValue: ");
-        if (AppStartReceiver.intercomService == null){
-            Log.d(TAG, "onDoorContactValue: AppStartReceiver.intercomService is null !");
+        if (IpcManager.INSTANCE.getService(IntercomService.class) == null){
+            Log.d(TAG, "onDoorContactValue: IpcManager.INSTANCE.getService(IntercomService.class) is null !");
             return;
         }
-        AppStartReceiver.intercomService.onDoorContactValue(new Result<DoorContact>() {
+        IpcManager.INSTANCE.getService(IntercomService.class).onDoorContactValue(new Result<DoorContact>() {
             @Override
             public void onData(DoorContact doorContact) {
                 JSONObject jsonObject = new JSONObject();
@@ -256,16 +237,16 @@ public class FloatUniModule extends UniModule implements SettingProviderInterfac
     @UniJSMethod(uiThread = true)
     @Override
     public void asyncGetDeviceListInfo(int areaId, int masterNum, int slaveNum, int devRegType, UniJSCallback uniJsCallback) {
-        if (!AppStartReceiver.isConnect){
+        if (!Singleton.getSingleton().isConnect()){
             showToast();
             return ;
         }
         Log.d(TAG, "asyncGetDeviceListInfo: ");
-        if (AppStartReceiver.intercomService == null){
-            Log.d(TAG, "asyncGetDeviceListInfo: AppStartReceiver.intercomService is null !");
+        if (IpcManager.INSTANCE.getService(IntercomService.class) == null){
+            Log.d(TAG, "asyncGetDeviceListInfo: IpcManager.INSTANCE.getService(IntercomService.class) is null !");
             return;
         }
-        AppStartReceiver.intercomService.asyncGetDeviceListInfo(areaId,masterNum,slaveNum,devRegType, new Result<ArrayList<DeviceInfo>>() {
+        IpcManager.INSTANCE.getService(IntercomService.class).asyncGetDeviceListInfo(areaId,masterNum,slaveNum,devRegType, new Result<ArrayList<DeviceInfo>>() {
             @Override
             public void onData(ArrayList<DeviceInfo> deviceInfos) {
                 String gsonString = new Gson().toJson(deviceInfos);
@@ -278,16 +259,16 @@ public class FloatUniModule extends UniModule implements SettingProviderInterfac
     @UniJSMethod(uiThread = true)
     @Override
     public void updateDeviceTalkState(UniJSCallback uniJsCallback) {
-        if (!AppStartReceiver.isConnect){
+        if (!Singleton.getSingleton().isConnect()){
             showToast();
             return ;
         }
         Log.d(TAG, "updateDeviceTalkState: ");
-        if (AppStartReceiver.intercomService == null){
-            Log.d(TAG, "updateDeviceTalkState: AppStartReceiver.intercomService is null !");
+        if (IpcManager.INSTANCE.getService(IntercomService.class) == null){
+            Log.d(TAG, "updateDeviceTalkState: IpcManager.INSTANCE.getService(IntercomService.class) is null !");
             return;
         }
-        AppStartReceiver.intercomService.updateDeviceTalkState(new Result<DeviceInfo>() {
+        IpcManager.INSTANCE.getService(IntercomService.class).updateDeviceTalkState(new Result<DeviceInfo>() {
             @Override
             public void onData(DeviceInfo deviceInfo) {
                 JSONObject jsonObject = new JSONObject();
@@ -309,16 +290,16 @@ public class FloatUniModule extends UniModule implements SettingProviderInterfac
     @UniJSMethod(uiThread = true)
     @Override
     public void deviceClick(int areaId, int masterNum, int slaveNum, int devRegType) {
-        if (!AppStartReceiver.isConnect){
+        if (!Singleton.getSingleton().isConnect()){
             showToast();
             return ;
         }
         Log.d(TAG, "deviceClick: ");
-        if (AppStartReceiver.intercomService == null){
-            Log.d(TAG, "deviceClick: AppStartReceiver.intercomService is null !");
+        if (IpcManager.INSTANCE.getService(IntercomService.class) == null){
+            Log.d(TAG, "deviceClick: IpcManager.INSTANCE.getService(IntercomService.class) is null !");
             return;
         }
-        AppStartReceiver.intercomService.masterClickItem(masterNum,slaveNum,areaId,devRegType);
+        IpcManager.INSTANCE.getService(IntercomService.class).masterClickItem(masterNum,slaveNum,areaId,devRegType);
     }
 
     /**
@@ -331,16 +312,16 @@ public class FloatUniModule extends UniModule implements SettingProviderInterfac
     @UniJSMethod(uiThread = true)
     @Override
     public void nativeCall(int areaId , int masterNum ,int slaveNum ,int devRegType){
-        if (!AppStartReceiver.isConnect){
+        if (!Singleton.getSingleton().isConnect()){
             showToast();
             return ;
         }
         Log.d(TAG, "nativeCall: ");
-        if (AppStartReceiver.intercomService == null){
-            Log.d(TAG, "nativeCall: AppStartReceiver.intercomService is null !");
+        if (IpcManager.INSTANCE.getService(IntercomService.class) == null){
+            Log.d(TAG, "nativeCall: IpcManager.INSTANCE.getService(IntercomService.class) is null !");
             return;
         }
-        AppStartReceiver.intercomService.call(masterNum,slaveNum,areaId,devRegType);
+        IpcManager.INSTANCE.getService(IntercomService.class).call(masterNum,slaveNum,areaId,devRegType);
 
     }
 
@@ -354,16 +335,16 @@ public class FloatUniModule extends UniModule implements SettingProviderInterfac
     @UniJSMethod(uiThread = true)
     @Override
     public void nativeAnswer(int areaId , int masterNum ,int slaveNum ,int devRegType){
-        if (!AppStartReceiver.isConnect){
+        if (!Singleton.getSingleton().isConnect()){
             showToast();
             return ;
         }
         Log.d(TAG, "nativeAnswer: ");
-        if (AppStartReceiver.intercomService == null){
-            Log.d(TAG, "nativeAnswer: AppStartReceiver.intercomService is null !");
+        if (IpcManager.INSTANCE.getService(IntercomService.class) == null){
+            Log.d(TAG, "nativeAnswer: IpcManager.INSTANCE.getService(IntercomService.class) is null !");
             return;
         }
-        AppStartReceiver.intercomService.answer(masterNum,slaveNum,areaId,devRegType);
+        IpcManager.INSTANCE.getService(IntercomService.class).answer(masterNum,slaveNum,areaId,devRegType);
 
     }
 
@@ -377,44 +358,44 @@ public class FloatUniModule extends UniModule implements SettingProviderInterfac
     @UniJSMethod(uiThread = true)
     @Override
     public void nativeHangup(int areaId , int masterNum ,int slaveNum ,int devRegType){
-        if (!AppStartReceiver.isConnect){
+        if (!Singleton.getSingleton().isConnect()){
             showToast();
             return ;
         }
         Log.d(TAG, "nativeHangup: ");
-        if (AppStartReceiver.intercomService == null){
-            Log.d(TAG, "nativeHangup: AppStartReceiver.intercomService is null !");
+        if (IpcManager.INSTANCE.getService(IntercomService.class) == null){
+            Log.d(TAG, "nativeHangup: IpcManager.INSTANCE.getService(IntercomService.class) is null !");
             return;
         }
-        AppStartReceiver.intercomService.hangup(masterNum,slaveNum,areaId,devRegType);
+        IpcManager.INSTANCE.getService(IntercomService.class).hangup(masterNum,slaveNum,areaId,devRegType);
 
     }
     @UniJSMethod(uiThread = true)
     @Override
     public void openLockCtrl(int num, int open) {
-        if (!AppStartReceiver.isConnect){
+        if (!Singleton.getSingleton().isConnect()){
             showToast();
             return ;
         }
-        if (AppStartReceiver.intercomService == null){
-            Log.d(TAG, "openLockCtrl: AppStartReceiver.intercomService is null !");
+        if (IpcManager.INSTANCE.getService(IntercomService.class) == null){
+            Log.d(TAG, "openLockCtrl: IpcManager.INSTANCE.getService(IntercomService.class) is null !");
             return;
         }
-        AppStartReceiver.intercomService.openLockCtrl(num,open);
+        IpcManager.INSTANCE.getService(IntercomService.class).openLockCtrl(num,open);
 
     }
     @UniJSMethod(uiThread = true)
     @Override
     public void getCurrentDeviceInfo(UniJSCallback uniJsCallback) {
-        if (!AppStartReceiver.isConnect){
+        if (!Singleton.getSingleton().isConnect()){
             showToast();
             return ;
         }
-        if (AppStartReceiver.intercomService == null){
-            Log.d(TAG, "getCurrentDeviceInfo: AppStartReceiver.intercomService is null !");
+        if (IpcManager.INSTANCE.getService(IntercomService.class) == null){
+            Log.d(TAG, "getCurrentDeviceInfo: IpcManager.INSTANCE.getService(IntercomService.class) is null !");
             return;
         }
-        AppStartReceiver.intercomService.getCurrentDeviceInfo(new Result<LocalDeviceInfo>() {
+        IpcManager.INSTANCE.getService(IntercomService.class).getCurrentDeviceInfo(new Result<LocalDeviceInfo>() {
             @Override
             public void onData(LocalDeviceInfo localDeviceInfo) {
                 JSONObject jsonObject = new JSONObject();
@@ -450,15 +431,15 @@ public class FloatUniModule extends UniModule implements SettingProviderInterfac
     @UniJSMethod(uiThread = true)
     @Override
     public void talkEventCallback(UniJSCallback uniJsCallback) {
-        if (!AppStartReceiver.isConnect){
+        if (!Singleton.getSingleton().isConnect()){
             showToast();
             return ;
         }
-        if (AppStartReceiver.intercomService == null){
-            Log.d(TAG, "talkEventCallback: AppStartReceiver.intercomService is null !");
+        if (IpcManager.INSTANCE.getService(IntercomService.class) == null){
+            Log.d(TAG, "talkEventCallback: IpcManager.INSTANCE.getService(IntercomService.class) is null !");
             return;
         }
-        AppStartReceiver.intercomService.talkEventCallback(new Result<TalkEvent>() {
+        IpcManager.INSTANCE.getService(IntercomService.class).talkEventCallback(new Result<TalkEvent>() {
             @Override
             public void onData(TalkEvent talkEvent) {
                 JSONObject jsonObject = new JSONObject();
@@ -482,15 +463,15 @@ public class FloatUniModule extends UniModule implements SettingProviderInterfac
     @UniJSMethod(uiThread = true)
     @Override
     public void onDeviceOnLine(UniJSCallback uniJsCallback) {
-        if (!AppStartReceiver.isConnect){
+        if (!Singleton.getSingleton().isConnect()){
             showToast();
             return ;
         }
-        if (AppStartReceiver.intercomService == null){
-            Log.d(TAG, "onDeviceOnLine: AppStartReceiver.intercomService is null !");
+        if (IpcManager.INSTANCE.getService(IntercomService.class) == null){
+            Log.d(TAG, "onDeviceOnLine: IpcManager.INSTANCE.getService(IntercomService.class) is null !");
             return;
         }
-        AppStartReceiver.intercomService.onDeviceOnLine(new Result<DeviceInfo>() {
+        IpcManager.INSTANCE.getService(IntercomService.class).onDeviceOnLine(new Result<DeviceInfo>() {
             @Override
             public void onData(DeviceInfo deviceInfo) {
                 JSONObject jsonObject = new JSONObject();
@@ -511,15 +492,15 @@ public class FloatUniModule extends UniModule implements SettingProviderInterfac
     @UniJSMethod(uiThread = true)
     @Override
     public void onDeviceOffLine(UniJSCallback uniJsCallback) {
-        if (!AppStartReceiver.isConnect){
+        if (!Singleton.getSingleton().isConnect()){
             showToast();
             return ;
         }
-        if (AppStartReceiver.intercomService == null){
-            Log.d(TAG, "onDeviceOffLine: AppStartReceiver.intercomService is null !");
+        if (IpcManager.INSTANCE.getService(IntercomService.class) == null){
+            Log.d(TAG, "onDeviceOffLine: IpcManager.INSTANCE.getService(IntercomService.class) is null !");
             return;
         }
-        AppStartReceiver.intercomService.onDeviceOffLine(new Result<DeviceInfo>() {
+        IpcManager.INSTANCE.getService(IntercomService.class).onDeviceOffLine(new Result<DeviceInfo>() {
             @Override
             public void onData(DeviceInfo deviceInfo) {
                 JSONObject jsonObject = new JSONObject();
@@ -541,110 +522,110 @@ public class FloatUniModule extends UniModule implements SettingProviderInterfac
     @UniJSMethod(uiThread = true)
     @Override
     public void listenToTalk() {
-        if (!AppStartReceiver.isConnect){
+        if (!Singleton.getSingleton().isConnect()){
             showToast();
             return ;
         }
-        if (AppStartReceiver.intercomService == null){
-            Log.d(TAG, "listenToTalk: AppStartReceiver.intercomService is null !");
+        if (IpcManager.INSTANCE.getService(IntercomService.class) == null){
+            Log.d(TAG, "listenToTalk: IpcManager.INSTANCE.getService(IntercomService.class) is null !");
             return;
         }
-        AppStartReceiver.intercomService.listenToTalk();
+        IpcManager.INSTANCE.getService(IntercomService.class).listenToTalk();
     }
     @UniJSMethod(uiThread = true)
     @Override
     public void hideTalkView(Boolean hide) {
-        if (!AppStartReceiver.isConnect){
+        if (!Singleton.getSingleton().isConnect()){
             showToast();
             return ;
         }
-        if (AppStartReceiver.intercomService == null){
-            Log.d(TAG, "hideTalkView: AppStartReceiver.intercomService is null !");
+        if (IpcManager.INSTANCE.getService(IntercomService.class) == null){
+            Log.d(TAG, "hideTalkView: IpcManager.INSTANCE.getService(IntercomService.class) is null !");
             return;
         }
-        AppStartReceiver.intercomService.hideTalkView(hide);
+        IpcManager.INSTANCE.getService(IntercomService.class).hideTalkView(hide);
 
     }
     @UniJSMethod(uiThread = true)
     @Override
     public void oneKeyCall() {
-        if (!AppStartReceiver.isConnect){
+        if (!Singleton.getSingleton().isConnect()){
             showToast();
             return ;
         }
-        if (AppStartReceiver.intercomService == null){
-            Log.d(TAG, "oneKeyCall: AppStartReceiver.intercomService is null !");
+        if (IpcManager.INSTANCE.getService(IntercomService.class) == null){
+            Log.d(TAG, "oneKeyCall: IpcManager.INSTANCE.getService(IntercomService.class) is null !");
             return;
         }
-        AppStartReceiver.intercomService.oneKeyCall();
+        IpcManager.INSTANCE.getService(IntercomService.class).oneKeyCall();
 
     }
     @UniJSMethod(uiThread = true)
     @Override
     public void setLocalVideoViewPosition(int left, int top, int width, int height) {
-        if (!AppStartReceiver.isConnect){
+        if (!Singleton.getSingleton().isConnect()){
             showToast();
             return ;
         }
-        if (AppStartReceiver.intercomService == null){
-            Log.d(TAG, "setLocalVideoViewPosition: AppStartReceiver.intercomService is null !");
+        if (IpcManager.INSTANCE.getService(IntercomService.class) == null){
+            Log.d(TAG, "setLocalVideoViewPosition: IpcManager.INSTANCE.getService(IntercomService.class) is null !");
             return;
         }
-        AppStartReceiver.intercomService.setPreViewPosition(left,top,width,height);
+        IpcManager.INSTANCE.getService(IntercomService.class).setPreViewPosition(left,top,width,height);
     }
     @UniJSMethod(uiThread = true)
     @Override
     public void hideLocalPreView(Boolean hide) {
-        if (!AppStartReceiver.isConnect){
+        if (!Singleton.getSingleton().isConnect()){
             showToast();
             return ;
         }
-        if (AppStartReceiver.intercomService == null){
-            Log.d(TAG, "hideLocalPreView: AppStartReceiver.intercomService is null !");
+        if (IpcManager.INSTANCE.getService(IntercomService.class) == null){
+            Log.d(TAG, "hideLocalPreView: IpcManager.INSTANCE.getService(IntercomService.class) is null !");
             return;
         }
-        AppStartReceiver.intercomService.hidePreView(hide);
+        IpcManager.INSTANCE.getService(IntercomService.class).hidePreView(hide);
     }
     @UniJSMethod(uiThread = true)
     @Override
     public void setExtMicEna(Boolean enable) {
-        if (!AppStartReceiver.isConnect){
+        if (!Singleton.getSingleton().isConnect()){
             showToast();
             return ;
         }
-        if (AppStartReceiver.intercomService == null){
-            Log.d(TAG, "setExtMicEna: AppStartReceiver.intercomService is null !");
+        if (IpcManager.INSTANCE.getService(IntercomService.class) == null){
+            Log.d(TAG, "setExtMicEna: IpcManager.INSTANCE.getService(IntercomService.class) is null !");
             return;
         }
-        AppStartReceiver.intercomService.setMicEna(enable);
+        IpcManager.INSTANCE.getService(IntercomService.class).setMicEna(enable);
     }
 
     @UniJSMethod(uiThread = true)
     @Override
     public void openLocalCamera(Boolean isOpen) {
-        if (!AppStartReceiver.isConnect){
+        if (!Singleton.getSingleton().isConnect()){
             showToast();
             return ;
         }
-        if (AppStartReceiver.intercomService == null){
-            Log.d(TAG, "openLocalCamera: AppStartReceiver.intercomService is null !");
+        if (IpcManager.INSTANCE.getService(IntercomService.class) == null){
+            Log.d(TAG, "openLocalCamera: IpcManager.INSTANCE.getService(IntercomService.class) is null !");
             return;
         }
-        AppStartReceiver.intercomService.openLocalCamera(isOpen);
+        IpcManager.INSTANCE.getService(IntercomService.class).openLocalCamera(isOpen);
     }
 
     @UniJSMethod(uiThread = true)
     @Override
     public void initFrame() {
-        if (!AppStartReceiver.isConnect){
+        if (!Singleton.getSingleton().isConnect()){
             showToast();
             return ;
         }
-        if (AppStartReceiver.intercomService == null){
-            Log.d(TAG, "openLocalCamera: AppStartReceiver.intercomService is null !");
+        if (IpcManager.INSTANCE.getService(IntercomService.class) == null){
+            Log.d(TAG, "openLocalCamera: IpcManager.INSTANCE.getService(IntercomService.class) is null !");
             return;
         }
-        AppStartReceiver.intercomService.initFrame();
+        IpcManager.INSTANCE.getService(IntercomService.class).initFrame();
     }
 
     private int width = 0;
@@ -652,37 +633,37 @@ public class FloatUniModule extends UniModule implements SettingProviderInterfac
     @UniJSMethod(uiThread = true)
     @Override
     public void setViewWidthHeight(int width, int height) {
-        if (!AppStartReceiver.isConnect){
+        if (!Singleton.getSingleton().isConnect()){
             showToast();
             return ;
         }
-        if (AppStartReceiver.intercomService == null){
-            Log.d(TAG, "openLocalCamera: AppStartReceiver.intercomService is null !");
+        if (IpcManager.INSTANCE.getService(IntercomService.class) == null){
+            Log.d(TAG, "openLocalCamera: IpcManager.INSTANCE.getService(IntercomService.class) is null !");
             return;
         }
         this.width = width;
         this.height = height;
-        AppStartReceiver.intercomService.setViewWidthHeight(width,height);
+        IpcManager.INSTANCE.getService(IntercomService.class).setViewWidthHeight(width,height);
     }
 
     @UniJSMethod(uiThread = true)
     @Override
     public void startTakeFrame() {
-        if (!AppStartReceiver.isConnect){
+        if (!Singleton.getSingleton().isConnect()){
             showToast();
             return ;
         }
-        if (AppStartReceiver.intercomService == null){
-            Log.d(TAG, "startTakeFrame: AppStartReceiver.intercomService is null !");
+        if (IpcManager.INSTANCE.getService(IntercomService.class) == null){
+            Log.d(TAG, "startTakeFrame: IpcManager.INSTANCE.getService(IntercomService.class) is null !");
             return;
         }
-        AppStartReceiver.intercomService.startTakeFrame();
+        IpcManager.INSTANCE.getService(IntercomService.class).startTakeFrame();
     }
 
     @UniJSMethod(uiThread = true)
     @Override
     public void stopTakeFrame() {
-        if (!AppStartReceiver.isConnect){
+        if (!Singleton.getSingleton().isConnect()){
             showToast();
             return ;
         }
@@ -692,7 +673,7 @@ public class FloatUniModule extends UniModule implements SettingProviderInterfac
     @UniJSMethod(uiThread = true)
     @Override
     public void takePicture() {
-        if (!AppStartReceiver.isConnect){
+        if (!Singleton.getSingleton().isConnect()){
             showToast();
             return ;
         }
@@ -702,7 +683,7 @@ public class FloatUniModule extends UniModule implements SettingProviderInterfac
     @UniJSMethod(uiThread = true)
     @Override
     public void takeFrame() {
-        if (!AppStartReceiver.isConnect){
+        if (!Singleton.getSingleton().isConnect()){
             showToast();
             return ;
         }
@@ -751,15 +732,15 @@ public class FloatUniModule extends UniModule implements SettingProviderInterfac
     @UniJSMethod(uiThread = false)
     @Override
     public void setRecordPath(String path, UniJSCallback uniJsCallback) {
-        if (!AppStartReceiver.isConnect){
+        if (!Singleton.getSingleton().isConnect()){
             showToast();
             return ;
         }
-        if (AppStartReceiver.intercomService == null){
-            Log.d(TAG, "setRecordPath: AppStartReceiver.intercomService is null !");
+        if (IpcManager.INSTANCE.getService(IntercomService.class) == null){
+            Log.d(TAG, "setRecordPath: IpcManager.INSTANCE.getService(IntercomService.class) is null !");
             return;
         }
-        AppStartReceiver.intercomService.setRecordPath(path, new Result<String>() {
+        IpcManager.INSTANCE.getService(IntercomService.class).setRecordPath(path, new Result<String>() {
             @Override
             public void onData(String s) {
                 JSONObject jsonObject = new JSONObject();
@@ -777,15 +758,15 @@ public class FloatUniModule extends UniModule implements SettingProviderInterfac
     @UniJSMethod(uiThread = false)
     @Override
     public void getFileList(String path, UniJSCallback uniJsCallback) {
-        if (!AppStartReceiver.isConnect){
+        if (!Singleton.getSingleton().isConnect()){
             showToast();
             return ;
         }
-        if (AppStartReceiver.intercomService == null){
-            Log.d(TAG, "getFileList: AppStartReceiver.intercomService is null !");
+        if (IpcManager.INSTANCE.getService(IntercomService.class) == null){
+            Log.d(TAG, "getFileList: IpcManager.INSTANCE.getService(IntercomService.class) is null !");
             return;
         }
-        AppStartReceiver.intercomService.getFileList(path, new Result<ArrayList<File>>() {
+        IpcManager.INSTANCE.getService(IntercomService.class).getFileList(path, new Result<ArrayList<File>>() {
             @Override
             public void onData(ArrayList<File> files) {
                 List<JsonFile> jsonList = new ArrayList<>();
@@ -810,15 +791,15 @@ public class FloatUniModule extends UniModule implements SettingProviderInterfac
     @UniJSMethod(uiThread = false)
     @Override
     public void deleteFile(String path, UniJSCallback uniJsCallback) {
-        if (!AppStartReceiver.isConnect){
+        if (!Singleton.getSingleton().isConnect()){
             showToast();
             return ;
         }
-        if (AppStartReceiver.intercomService == null){
-            Log.d(TAG, "deleteFile: AppStartReceiver.intercomService is null !");
+        if (IpcManager.INSTANCE.getService(IntercomService.class) == null){
+            Log.d(TAG, "deleteFile: IpcManager.INSTANCE.getService(IntercomService.class) is null !");
             return;
         }
-        AppStartReceiver.intercomService.deleteFile(path, new Result<Boolean>() {
+        IpcManager.INSTANCE.getService(IntercomService.class).deleteFile(path, new Result<Boolean>() {
             @Override
             public void onData(Boolean isSuccess) {
                 JSONObject jsonObject = new JSONObject();
@@ -836,16 +817,16 @@ public class FloatUniModule extends UniModule implements SettingProviderInterfac
     @UniJSMethod(uiThread = true)
     @Override
     public void setSlaveVolume(int volume) {
-        if (!AppStartReceiver.isConnect){
+        if (!Singleton.getSingleton().isConnect()){
             showToast();
             return ;
         }
         Log.d(TAG, "setSlaveVolume: " + volume);
-        if (AppStartReceiver.intercomService == null){
-            Log.d(TAG, "setSlaveVolume: AppStartReceiver.intercomService is null !");
+        if (IpcManager.INSTANCE.getService(IntercomService.class) == null){
+            Log.d(TAG, "setSlaveVolume: IpcManager.INSTANCE.getService(IntercomService.class) is null !");
             return;
         }
-        AppStartReceiver.intercomService.setSlaveTalkVolume(volume);
+        IpcManager.INSTANCE.getService(IntercomService.class).setSlaveTalkVolume(volume);
     }
 
     /**
@@ -857,16 +838,16 @@ public class FloatUniModule extends UniModule implements SettingProviderInterfac
     public void syncGetSlaveVolume(UniJSCallback uniJSCallback) {
         Log.d(TAG, "syncGetSlaveVolume: ");
         JSONObject jsonObject = new JSONObject();
-        if (!AppStartReceiver.isConnect){
+        if (!Singleton.getSingleton().isConnect()){
             showToast();
             jsonObject.put("slaveVolume", 3);
         }else {
-            if (AppStartReceiver.intercomService == null){
-                Log.d(TAG, "syncGetSlaveVolume: AppStartReceiver.intercomService is null !");
+            if (IpcManager.INSTANCE.getService(IntercomService.class) == null){
+                Log.d(TAG, "syncGetSlaveVolume: IpcManager.INSTANCE.getService(IntercomService.class) is null !");
                 jsonObject.put("slaveVolume", 3);
                 return;
             }
-            jsonObject.put("slaveVolume", AppStartReceiver.intercomService.getSlaveTalkVolume());
+            jsonObject.put("slaveVolume", IpcManager.INSTANCE.getService(IntercomService.class).getSlaveTalkVolume());
         }
         uniJSCallback.invoke(jsonObject);
     }
@@ -926,17 +907,17 @@ public class FloatUniModule extends UniModule implements SettingProviderInterfac
     public void syncStartCard(UniJSCallback uniJSCallback){
         Log.d(TAG, "syncStartCard: ");
         JSONObject jsonObject = new JSONObject();
-        if (!AppStartReceiver.isConnect){
+        if (!Singleton.getSingleton().isConnect()){
             showToast();
             jsonObject.put("code",-1);
         }else {
-            if (AppStartReceiver.swingCardService == null){
-                Log.d(TAG, "syncStartCard: AppStartReceiver.swingCardService is null !");
+            if (IpcManager.INSTANCE.getService(SwingCardService.class) == null){
+                Log.d(TAG, "syncStartCard: IpcManager.INSTANCE.getService(SwingCardService.class) is null !");
                 jsonObject.put("code",-1);
                 return;
             }
             jsonObject.put("code",0);
-            AppStartReceiver.swingCardService.start();
+            IpcManager.INSTANCE.getService(SwingCardService.class).start();
         }
         uniJSCallback.invoke(jsonObject);
     }
@@ -949,18 +930,18 @@ public class FloatUniModule extends UniModule implements SettingProviderInterfac
     public void syncStopCard(UniJSCallback uniJSCallback){
         Log.d(TAG, "syncStopCard: ");
         JSONObject jsonObject = new JSONObject();
-        if (!AppStartReceiver.isConnect){
+        if (!Singleton.getSingleton().isConnect()){
             showToast();
             jsonObject.put("code",-1);
         }else {
 
-            if (AppStartReceiver.swingCardService == null){
-                Log.d(TAG, "syncStopCard: AppStartReceiver.swingCardService is null !");
+            if (IpcManager.INSTANCE.getService(SwingCardService.class) == null){
+                Log.d(TAG, "syncStopCard: IpcManager.INSTANCE.getService(SwingCardService.class) is null !");
                 jsonObject.put("code",-1);
                 return;
             }
             jsonObject.put("code",0);
-            AppStartReceiver.swingCardService.stop();
+            IpcManager.INSTANCE.getService(SwingCardService.class).stop();
         }
         uniJSCallback.invoke(jsonObject);
     }
@@ -972,16 +953,16 @@ public class FloatUniModule extends UniModule implements SettingProviderInterfac
     @UniJSMethod(uiThread = true)
     @Override
     public void setCardDataCallBack(UniJSCallback uniJSCallback){
-        if (!AppStartReceiver.isConnect){
+        if (!Singleton.getSingleton().isConnect()){
             showToast();
             return ;
         }
         Log.d(TAG, "setCardDataCallBack: ");
-        if (AppStartReceiver.swingCardService == null){
-            Log.d(TAG, "setCardDataCallBack: AppStartReceiver.swingCardService is null !");
+        if (IpcManager.INSTANCE.getService(SwingCardService.class) == null){
+            Log.d(TAG, "setCardDataCallBack: IpcManager.INSTANCE.getService(SwingCardService.class) is null !");
             return;
         }
-        AppStartReceiver.swingCardService.setCardDataCallBack(new Result<CallbackData<CardData>>() {
+        IpcManager.INSTANCE.getService(SwingCardService.class).setCardDataCallBack(new Result<CallbackData<CardData>>() {
             @Override
             public void onData(CallbackData<CardData> cardDataCallbackData) {
                 JSONObject jsonObject = new JSONObject();
@@ -999,17 +980,17 @@ public class FloatUniModule extends UniModule implements SettingProviderInterfac
     public void syncStartFinger(UniJSCallback uniJSCallback) {
         Log.d(TAG, "syncStartFinger: ");
         JSONObject jsonObject = new JSONObject();
-        if (!AppStartReceiver.isConnect){
+        if (!Singleton.getSingleton().isConnect()){
             showToast();
             jsonObject.put("code",-1);
         }else {
-            if (AppStartReceiver.fingerprintService == null){
-                Log.d(TAG, "syncStartFinger: AppStartReceiver.fingerprintService is null !");
+            if (IpcManager.INSTANCE.getService(FingerprintService.class) == null){
+                Log.d(TAG, "syncStartFinger: IpcManager.INSTANCE.getService(FingerprintService.class) is null !");
                 jsonObject.put("code",-1);
                 return;
             }
             jsonObject.put("code",0);
-            AppStartReceiver.fingerprintService.init();
+            IpcManager.INSTANCE.getService(FingerprintService.class).init();
         }
         uniJSCallback.invoke(jsonObject);
 
@@ -1020,17 +1001,17 @@ public class FloatUniModule extends UniModule implements SettingProviderInterfac
     public void syncStopFinger(UniJSCallback uniJSCallback) {
         Log.d(TAG, "syncStopFinger: ");
         JSONObject jsonObject = new JSONObject();
-        if (!AppStartReceiver.isConnect){
+        if (!Singleton.getSingleton().isConnect()){
             showToast();
             jsonObject.put("code",-1);
         }else {
-            if (AppStartReceiver.fingerprintService == null){
-                Log.d(TAG, "syncStopFinger: AppStartReceiver.fingerprintService is null !");
+            if (IpcManager.INSTANCE.getService(FingerprintService.class) == null){
+                Log.d(TAG, "syncStopFinger: IpcManager.INSTANCE.getService(FingerprintService.class) is null !");
                 jsonObject.put("code",-1);
                 return;
             }
             jsonObject.put("code",0);
-            AppStartReceiver.fingerprintService.stop();
+            IpcManager.INSTANCE.getService(FingerprintService.class).stop();
         }
         uniJSCallback.invoke(jsonObject);
     }
@@ -1038,33 +1019,33 @@ public class FloatUniModule extends UniModule implements SettingProviderInterfac
     @Override
     public void fingerModuleStop() {
         Log.d(TAG, "fingerModuleStop: ");
-        if (AppStartReceiver.fingerprintService == null){
-            Log.d(TAG, "fingerModuleStop: AppStartReceiver.fingerprintService is null !");
+        if (IpcManager.INSTANCE.getService(FingerprintService.class) == null){
+            Log.d(TAG, "fingerModuleStop: IpcManager.INSTANCE.getService(FingerprintService.class) is null !");
             return;
         }
-        AppStartReceiver.fingerprintService.destroy();
+        IpcManager.INSTANCE.getService(FingerprintService.class).destroy();
     }
 
     @UniJSMethod(uiThread = true)
     @Override
     public void fingerprintCollect(String id) {
         Log.d(TAG, "fingerprintCollect: ");
-        if (AppStartReceiver.fingerprintService == null){
-            Log.d(TAG, "fingerprintCollect: AppStartReceiver.fingerprintService is null !");
+        if (IpcManager.INSTANCE.getService(FingerprintService.class) == null){
+            Log.d(TAG, "fingerprintCollect: IpcManager.INSTANCE.getService(FingerprintService.class) is null !");
             return;
         }
-        AppStartReceiver.fingerprintService.fingerprintCollect(id);
+        IpcManager.INSTANCE.getService(FingerprintService.class).fingerprintCollect(id);
 
     }
     @UniJSMethod(uiThread = true)
     @Override
     public void fingerprintRecognition() {
         Log.d(TAG, "fingerprintRecognition: ");
-        if (AppStartReceiver.fingerprintService == null){
-            Log.d(TAG, "fingerprintRecognition: AppStartReceiver.fingerprintService is null !");
+        if (IpcManager.INSTANCE.getService(FingerprintService.class) == null){
+            Log.d(TAG, "fingerprintRecognition: IpcManager.INSTANCE.getService(FingerprintService.class) is null !");
             return;
         }
-        AppStartReceiver.fingerprintService.fingerprintRecognition();
+        IpcManager.INSTANCE.getService(FingerprintService.class).fingerprintRecognition();
 
     }
 
@@ -1073,26 +1054,26 @@ public class FloatUniModule extends UniModule implements SettingProviderInterfac
     @Override
     public void fingerprintFeatureInput(String id, String feature) {
         Log.d(TAG, "fingerprintFeatureInput: ");
-        if (AppStartReceiver.fingerprintService == null){
-            Log.d(TAG, "fingerprintFeatureInput: AppStartReceiver.fingerprintService is null !");
+        if (IpcManager.INSTANCE.getService(FingerprintService.class) == null){
+            Log.d(TAG, "fingerprintFeatureInput: IpcManager.INSTANCE.getService(FingerprintService.class) is null !");
             return;
         }
-        AppStartReceiver.fingerprintService.fingerprintFeatureInput(id,feature);
+        IpcManager.INSTANCE.getService(FingerprintService.class).fingerprintFeatureInput(id,feature);
     }
 
     @UniJSMethod(uiThread = true)
     @Override
     public void setFingerprintFeatureCallBack(UniJSCallback uniJSCallback) {
-        if (!AppStartReceiver.isConnect){
+        if (!Singleton.getSingleton().isConnect()){
             showToast();
             return ;
         }
         Log.d(TAG, "setGetFingerprintFeatureCallBack: ");
-        if (AppStartReceiver.fingerprintService == null){
-            Log.d(TAG, "setFingerprintFeatureCallBack: AppStartReceiver.fingerprintService is null !");
+        if (IpcManager.INSTANCE.getService(FingerprintService.class) == null){
+            Log.d(TAG, "setFingerprintFeatureCallBack: IpcManager.INSTANCE.getService(FingerprintService.class) is null !");
             return;
         }
-        AppStartReceiver.fingerprintService.setFingerprintFeatureCallBack(new Result<CallbackData<FingerprintFeatureResult>>() {
+        IpcManager.INSTANCE.getService(FingerprintService.class).setFingerprintFeatureCallBack(new Result<CallbackData<FingerprintFeatureResult>>() {
             @Override
             public void onData(CallbackData<FingerprintFeatureResult> callbackData) {
                 JSONObject jsonObject = new JSONObject();
@@ -1108,16 +1089,16 @@ public class FloatUniModule extends UniModule implements SettingProviderInterfac
     @UniJSMethod(uiThread = true)
     @Override
     public void setFingerprintFeatureLeftNumCallBack(UniJSCallback uniJSCallback) {
-        if (!AppStartReceiver.isConnect){
+        if (!Singleton.getSingleton().isConnect()){
             showToast();
             return ;
         }
         Log.d(TAG, "setGetFingerprintFeatureLeftNumCallBack: ");
-        if (AppStartReceiver.fingerprintService == null){
-            Log.d(TAG, "setFingerprintFeatureLeftNumCallBack: AppStartReceiver.fingerprintService is null !");
+        if (IpcManager.INSTANCE.getService(FingerprintService.class) == null){
+            Log.d(TAG, "setFingerprintFeatureLeftNumCallBack: IpcManager.INSTANCE.getService(FingerprintService.class) is null !");
             return;
         }
-        AppStartReceiver.fingerprintService.setFingerprintLeftNumCallBack(new Result<CallbackData<FingerprintLeftNumResult>>() {
+        IpcManager.INSTANCE.getService(FingerprintService.class).setFingerprintLeftNumCallBack(new Result<CallbackData<FingerprintLeftNumResult>>() {
             @Override
             public void onData(CallbackData<FingerprintLeftNumResult> callbackData) {
                 JSONObject jsonObject = new JSONObject();
@@ -1133,16 +1114,16 @@ public class FloatUniModule extends UniModule implements SettingProviderInterfac
     @UniJSMethod(uiThread = true)
     @Override
     public void setCompareFingerprintCallBack(UniJSCallback uniJSCallback) {
-        if (!AppStartReceiver.isConnect){
+        if (!Singleton.getSingleton().isConnect()){
             showToast();
             return ;
         }
         Log.d(TAG, "setGetCompareFingerprintCallBack: ");
-        if (AppStartReceiver.fingerprintService == null){
-            Log.d(TAG, "setCompareFingerprintCallBack: AppStartReceiver.fingerprintService is null !");
+        if (IpcManager.INSTANCE.getService(FingerprintService.class) == null){
+            Log.d(TAG, "setCompareFingerprintCallBack: IpcManager.INSTANCE.getService(FingerprintService.class) is null !");
             return;
         }
-        AppStartReceiver.fingerprintService.setFingerprintCompareCallBack(new Result<CallbackData<FingerprintCompareResult>>() {
+        IpcManager.INSTANCE.getService(FingerprintService.class).setFingerprintCompareCallBack(new Result<CallbackData<FingerprintCompareResult>>() {
             @Override
             public void onData(CallbackData<FingerprintCompareResult> callbackData) {
                 JSONObject jsonObject = new JSONObject();
@@ -1164,17 +1145,17 @@ public class FloatUniModule extends UniModule implements SettingProviderInterfac
     @UniJSMethod(uiThread = true)
     @Override
     public void clearFingerprintById(String id) {
-        if (!AppStartReceiver.isConnect){
+        if (!Singleton.getSingleton().isConnect()){
             showToast();
             return ;
         }
         Log.d(TAG, "setGetCompareFingerprintCallBack: ");
-        if (AppStartReceiver.fingerprintService == null){
-            Log.d(TAG, "setCompareFingerprintCallBack: AppStartReceiver.fingerprintService is null !");
+        if (IpcManager.INSTANCE.getService(FingerprintService.class) == null){
+            Log.d(TAG, "setCompareFingerprintCallBack: IpcManager.INSTANCE.getService(FingerprintService.class) is null !");
             return;
         }
 
-        AppStartReceiver.fingerprintService.clearFingerprintById(id);
+        IpcManager.INSTANCE.getService(FingerprintService.class).clearFingerprintById(id);
     }
 
     /**
@@ -1184,16 +1165,16 @@ public class FloatUniModule extends UniModule implements SettingProviderInterfac
     @UniJSMethod(uiThread = true)
     @Override
     public void clearFingerprintByFeature(String feature) {
-        if (!AppStartReceiver.isConnect){
+        if (!Singleton.getSingleton().isConnect()){
             showToast();
             return ;
         }
         Log.d(TAG, "setGetCompareFingerprintCallBack: ");
-        if (AppStartReceiver.fingerprintService == null){
-            Log.d(TAG, "setCompareFingerprintCallBack: AppStartReceiver.fingerprintService is null !");
+        if (IpcManager.INSTANCE.getService(FingerprintService.class) == null){
+            Log.d(TAG, "setCompareFingerprintCallBack: IpcManager.INSTANCE.getService(FingerprintService.class) is null !");
             return;
         }
-        AppStartReceiver.fingerprintService.clearFingerprintByFeature(feature);
+        IpcManager.INSTANCE.getService(FingerprintService.class).clearFingerprintByFeature(feature);
     }
 
     /**
@@ -1202,16 +1183,16 @@ public class FloatUniModule extends UniModule implements SettingProviderInterfac
     @UniJSMethod(uiThread = true)
     @Override
     public void clearAllFingerprint() {
-        if (!AppStartReceiver.isConnect){
+        if (!Singleton.getSingleton().isConnect()){
             showToast();
             return ;
         }
         Log.d(TAG, "setGetCompareFingerprintCallBack: ");
-        if (AppStartReceiver.fingerprintService == null){
-            Log.d(TAG, "setCompareFingerprintCallBack: AppStartReceiver.fingerprintService is null !");
+        if (IpcManager.INSTANCE.getService(FingerprintService.class) == null){
+            Log.d(TAG, "setCompareFingerprintCallBack: IpcManager.INSTANCE.getService(FingerprintService.class) is null !");
             return;
         }
-        AppStartReceiver.fingerprintService.clearAllFingerprint();
+        IpcManager.INSTANCE.getService(FingerprintService.class).clearAllFingerprint();
     }
     /**********************************************************************************/
 
@@ -1221,18 +1202,18 @@ public class FloatUniModule extends UniModule implements SettingProviderInterfac
     public void syncStartTemperature(UniJSCallback uniJSCallback) {
         Log.d(TAG, "syncStartTemperature: ");
         JSONObject jsonObject = new JSONObject();
-        if (!AppStartReceiver.isConnect){
+        if (!Singleton.getSingleton().isConnect()){
             showToast();
             jsonObject.put("code",-1);
         }else {
 
-            if (AppStartReceiver.temperatureMeasurementService == null){
-                Log.d(TAG, "syncStartTemperature: AppStartReceiver.temperatureMeasurementService is null !");
+            if (IpcManager.INSTANCE.getService(TemperatureMeasurementService.class) == null){
+                Log.d(TAG, "syncStartTemperature: IpcManager.INSTANCE.getService(TemperatureMeasurementService.class) is null !");
                 jsonObject.put("code",-1);
                 return;
             }
             jsonObject.put("code",0);
-            AppStartReceiver.temperatureMeasurementService.start();
+            IpcManager.INSTANCE.getService(TemperatureMeasurementService.class).start();
         }
         uniJSCallback.invoke(jsonObject);
 
@@ -1243,18 +1224,18 @@ public class FloatUniModule extends UniModule implements SettingProviderInterfac
     public void syncStopTemperature(UniJSCallback uniJSCallback) {
         Log.d(TAG, "syncStopTemperature: ");
         JSONObject jsonObject = new JSONObject();
-        if (!AppStartReceiver.isConnect){
+        if (!Singleton.getSingleton().isConnect()){
             showToast();
             jsonObject.put("code",-1);
         }else {
 
-            if (AppStartReceiver.temperatureMeasurementService == null){
-                Log.d(TAG, "syncStopTemperature: AppStartReceiver.temperatureMeasurementService is null !");
+            if (IpcManager.INSTANCE.getService(TemperatureMeasurementService.class) == null){
+                Log.d(TAG, "syncStopTemperature: IpcManager.INSTANCE.getService(TemperatureMeasurementService.class) is null !");
                 jsonObject.put("code",-1);
                 return;
             }
             jsonObject.put("code",0);
-            AppStartReceiver.temperatureMeasurementService.stop();
+            IpcManager.INSTANCE.getService(TemperatureMeasurementService.class).stop();
         }
         uniJSCallback.invoke(jsonObject);
 
@@ -1263,16 +1244,16 @@ public class FloatUniModule extends UniModule implements SettingProviderInterfac
     @UniJSMethod(uiThread = true)
     @Override
     public void setTemperatureDataCallBack(UniJSCallback uniJSCallback) {
-        if (!AppStartReceiver.isConnect){
+        if (!Singleton.getSingleton().isConnect()){
             showToast();
             return ;
         }
         Log.d(TAG, "setTemperatureDataCallBack: ");
-        if (AppStartReceiver.temperatureMeasurementService == null){
-            Log.d(TAG, "setTemperatureDataCallBack: AppStartReceiver.temperatureMeasurementService is null !");
+        if (IpcManager.INSTANCE.getService(TemperatureMeasurementService.class) == null){
+            Log.d(TAG, "setTemperatureDataCallBack: IpcManager.INSTANCE.getService(TemperatureMeasurementService.class) is null !");
             return;
         }
-        AppStartReceiver.temperatureMeasurementService.setTemperatureDataCallBack(new Result<CallbackData<TemperatureData>>() {
+        IpcManager.INSTANCE.getService(TemperatureMeasurementService.class).setTemperatureDataCallBack(new Result<CallbackData<TemperatureData>>() {
             @Override
             public void onData(CallbackData<TemperatureData> callbackData) {
                 JSONObject jsonObject = new JSONObject();
@@ -1289,16 +1270,16 @@ public class FloatUniModule extends UniModule implements SettingProviderInterfac
     @UniJSMethod(uiThread = true)
     @Override
     public void setSystemTime(long time) {
-        if (!AppStartReceiver.isConnect){
+        if (!Singleton.getSingleton().isConnect()){
             showToast();
             return ;
         }
         Log.d(TAG, "setSystemTime: "+time);
-        if (AppStartReceiver.systemSettingService == null){
-            Log.d(TAG, "setSystemTime: AppStartReceiver.systemSettingService is null !");
+        if (IpcManager.INSTANCE.getService(SystemSettingService.class) == null){
+            Log.d(TAG, "setSystemTime: IpcManager.INSTANCE.getService(SystemSettingService.class) is null !");
             return;
         }
-        AppStartReceiver.systemSettingService.setSystemTime(time);
+        IpcManager.INSTANCE.getService(SystemSettingService.class).setSystemTime(time);
     }
 
     @UniJSMethod(uiThread = true)
@@ -1418,31 +1399,27 @@ public class FloatUniModule extends UniModule implements SettingProviderInterfac
     @UniJSMethod(uiThread = true)
     @Override
     public void rebootSystem() {
-        if (!AppStartReceiver.isConnect){
+        if (!Singleton.getSingleton().isConnect()){
             showToast();
             return ;
         }
         Log.d(TAG, "rebootSystem: ");
-        if (AppStartReceiver.systemSettingService == null){
-            Log.d(TAG, "rebootSystem: AppStartReceiver.systemSettingService is null !");
+        if (IpcManager.INSTANCE.getService(SystemSettingService.class) == null){
+            Log.d(TAG, "rebootSystem: IpcManager.INSTANCE.getService(SystemSettingService.class) is null !");
             return;
         }
-        AppStartReceiver.systemSettingService.rebootSystem();
+        IpcManager.INSTANCE.getService(SystemSettingService.class).rebootSystem();
     }
 
     @UniJSMethod(uiThread = true)
     @Override
     public void openGuard(int isOpen) {
-        if (!AppStartReceiver.isConnect){
+        if (!Singleton.getSingleton().isConnect()){
             showToast();
             return ;
         }
         Log.d(TAG, "openGuard: isOpen："+isOpen);
-        if (AppStartReceiver.iLonbonService == null){
-            Log.d(TAG, "openGuard: AppStartReceiver.iLonbonService is null !");
-            return;
-        }
-        AppStartReceiver.iLonbonService.openGuard(isOpen == 1);
+        IpcManager.INSTANCE.getService(ILonbonService.class).openGuard(isOpen == 1);
 
     }
 
@@ -1451,108 +1428,108 @@ public class FloatUniModule extends UniModule implements SettingProviderInterfac
     @UniJSMethod(uiThread = true)
     @Override
     public void initEducation() {
-        if (!AppStartReceiver.isConnect){
+        if (!Singleton.getSingleton().isConnect()){
             showToast();
             return ;
         }
         Log.d(TAG, "initEducation: ");
-        if (AppStartReceiver.educationService == null){
-            Log.d(TAG, "initEducation: AppStartReceiver.educationService is null !");
+        if (IpcManager.INSTANCE.getService(EducationService.class) == null){
+            Log.d(TAG, "initEducation: IpcManager.INSTANCE.getService(EducationService.class) is null !");
             return;
         }
-        AppStartReceiver.educationService.init();
+        IpcManager.INSTANCE.getService(EducationService.class).init();
     }
 
     @UniJSMethod(uiThread = true)
     @Override
     public void enterLiveShow() {
-        if (!AppStartReceiver.isConnect){
+        if (!Singleton.getSingleton().isConnect()){
             showToast();
             return ;
         }
         Log.d(TAG, "enterLiveShow: ");
-        if (AppStartReceiver.educationService == null){
-            Log.d(TAG, "enterLiveShow: AppStartReceiver.educationService is null !");
+        if (IpcManager.INSTANCE.getService(EducationService.class) == null){
+            Log.d(TAG, "enterLiveShow: IpcManager.INSTANCE.getService(EducationService.class) is null !");
             return;
         }
-        AppStartReceiver.educationService.showEducation();
+        IpcManager.INSTANCE.getService(EducationService.class).showEducation();
     }
 
     @UniJSMethod(uiThread = true)
     @Override
     public void exitLiveShow() {
-        if (!AppStartReceiver.isConnect){
+        if (!Singleton.getSingleton().isConnect()){
             showToast();
             return ;
         }
         Log.d(TAG, "exitLiveShow: ");
-        if (AppStartReceiver.educationService == null){
-            Log.d(TAG, "exitLiveShow: AppStartReceiver.educationService is null !");
+        if (IpcManager.INSTANCE.getService(EducationService.class) == null){
+            Log.d(TAG, "exitLiveShow: IpcManager.INSTANCE.getService(EducationService.class) is null !");
             return;
         }
-        AppStartReceiver.educationService.exitEducation();
+        IpcManager.INSTANCE.getService(EducationService.class).exitEducation();
     }
 
     @UniJSMethod(uiThread = true)
     @Override
     public void syncGetEducationTaskList(UniJSCallback uniJSCallback) {
-        if (!AppStartReceiver.isConnect){
+        if (!Singleton.getSingleton().isConnect()){
             showToast();
             return ;
         }
         Log.d(TAG, "syncGetEducationTaskList: ");
-        if (AppStartReceiver.educationService == null){
-            Log.d(TAG, "syncGetEducationTaskList: AppStartReceiver.educationService is null !");
+        if (IpcManager.INSTANCE.getService(EducationService.class) == null){
+            Log.d(TAG, "syncGetEducationTaskList: IpcManager.INSTANCE.getService(EducationService.class) is null !");
             return;
         }
         JSONObject jsonObject = new JSONObject();
-        jsonObject.put("educationTaskList", new Gson().toJson(AppStartReceiver.educationService.getEducationTask()));
+        jsonObject.put("educationTaskList", new Gson().toJson(IpcManager.INSTANCE.getService(EducationService.class).getEducationTask()));
         uniJSCallback.invoke(jsonObject);
     }
 
     @UniJSMethod(uiThread = true)
     @Override
     public void enterEducationTask() {
-        if (!AppStartReceiver.isConnect){
+        if (!Singleton.getSingleton().isConnect()){
             showToast();
             return ;
         }
         Log.d(TAG, "enterEducationTask: ");
-        if (AppStartReceiver.educationService == null){
-            Log.d(TAG, "enterEducationTask: AppStartReceiver.educationService is null !");
+        if (IpcManager.INSTANCE.getService(EducationService.class) == null){
+            Log.d(TAG, "enterEducationTask: IpcManager.INSTANCE.getService(EducationService.class) is null !");
             return;
         }
-        AppStartReceiver.educationService.showEducationTask();
+        IpcManager.INSTANCE.getService(EducationService.class).showEducationTask();
     }
 
     @UniJSMethod(uiThread = true)
     @Override
     public void exitEducationTask() {
-        if (!AppStartReceiver.isConnect){
+        if (!Singleton.getSingleton().isConnect()){
             showToast();
             return ;
         }
         Log.d(TAG, "exitEducationTask: ");
-        if (AppStartReceiver.educationService == null){
-            Log.d(TAG, "exitEducationTask: AppStartReceiver.educationService is null !");
+        if (IpcManager.INSTANCE.getService(EducationService.class) == null){
+            Log.d(TAG, "exitEducationTask: IpcManager.INSTANCE.getService(EducationService.class) is null !");
             return;
         }
-        AppStartReceiver.educationService.exitEducationTask();
+        IpcManager.INSTANCE.getService(EducationService.class).exitEducationTask();
     }
 
     @UniJSMethod(uiThread = true)
     @Override
     public void setEducationStateListener(UniJSCallback uniJSCallback) {
-        if (!AppStartReceiver.isConnect){
+        if (!Singleton.getSingleton().isConnect()){
             showToast();
             return ;
         }
         Log.d(TAG, "setEducationStateListener: ");
-        if (AppStartReceiver.educationService == null){
-            Log.d(TAG, "setEducationStateListener: AppStartReceiver.educationService is null !");
+        if (IpcManager.INSTANCE.getService(EducationService.class) == null){
+            Log.d(TAG, "setEducationStateListener: IpcManager.INSTANCE.getService(EducationService.class) is null !");
             return;
         }
-        AppStartReceiver.educationService.setEducationTaskStateListener(new Result<EducationTaskStateBean>() {
+        IpcManager.INSTANCE.getService(EducationService.class).setEducationTaskStateListener(new Result<EducationTaskStateBean>() {
             @Override
             public void onData(EducationTaskStateBean educationTaskStateBean) {
                 Log.d(TAG, "educationTaskStateBean: " + educationTaskStateBean);
@@ -1566,46 +1543,46 @@ public class FloatUniModule extends UniModule implements SettingProviderInterfac
     @UniJSMethod(uiThread = true)
     @Override
     public void hdmiOpen(int outputConfigure) {
-        if (!AppStartReceiver.isConnect){
+        if (!Singleton.getSingleton().isConnect()){
             showToast();
             return ;
         }
         Log.d(TAG, "hdmiOpen: " + outputConfigure);
-        if (AppStartReceiver.educationService == null){
-            Log.d(TAG, "hdmiOpen: AppStartReceiver.educationService is null !");
+        if (IpcManager.INSTANCE.getService(EducationService.class) == null){
+            Log.d(TAG, "hdmiOpen: IpcManager.INSTANCE.getService(EducationService.class) is null !");
             return;
         }
-        AppStartReceiver.educationService.setHDMIConfigure(outputConfigure);
+        IpcManager.INSTANCE.getService(EducationService.class).setHDMIConfigure(outputConfigure);
     }
 
     @UniJSMethod(uiThread = true)
     @Override
     public void audioSyncOutput(int enable) {
-        if (!AppStartReceiver.isConnect){
+        if (!Singleton.getSingleton().isConnect()){
             showToast();
             return ;
         }
         Log.d(TAG, "audioSyncOutput: " + enable);
-        if (AppStartReceiver.educationService == null){
-            Log.d(TAG, "audioSyncOutput: AppStartReceiver.educationService is null  !");
+        if (IpcManager.INSTANCE.getService(EducationService.class) == null){
+            Log.d(TAG, "audioSyncOutput: IpcManager.INSTANCE.getService(EducationService.class) is null  !");
             return;
         }
-        AppStartReceiver.educationService.setAudioSyncOutput(enable);
+        IpcManager.INSTANCE.getService(EducationService.class).setAudioSyncOutput(enable);
     }
 
     @UniJSMethod(uiThread = true)
     @Override
     public void setHdmiStatusListener(UniJSCallback uniJSCallback) {
-        if (!AppStartReceiver.isConnect){
+        if (!Singleton.getSingleton().isConnect()){
             showToast();
             return ;
         }
         Log.d(TAG, "setHdmiStatusListener: ");
-        if (AppStartReceiver.educationService == null){
-            Log.d(TAG, "setHdmiStatusListener: AppStartReceiver.educationService is null !");
+        if (IpcManager.INSTANCE.getService(EducationService.class) == null){
+            Log.d(TAG, "setHdmiStatusListener: IpcManager.INSTANCE.getService(EducationService.class) is null !");
             return;
         }
-        AppStartReceiver.educationService.setHdmiStatusListener(new Result<Boolean>() {
+        IpcManager.INSTANCE.getService(EducationService.class).setHdmiStatusListener(new Result<Boolean>() {
             @Override
             public void onData(Boolean aBoolean) {
                 Log.d(TAG, "hdmiStatusListener: " + aBoolean);
@@ -1619,33 +1596,33 @@ public class FloatUniModule extends UniModule implements SettingProviderInterfac
     @UniJSMethod(uiThread = true)
     @Override
     public void syncGetHdmiStatus(UniJSCallback uniJSCallback) {
-        if (!AppStartReceiver.isConnect){
+        if (!Singleton.getSingleton().isConnect()){
             showToast();
             return ;
         }
         Log.d(TAG, "syncGetHdmiStatus: ");
-        if (AppStartReceiver.educationService == null){
-            Log.d(TAG, "syncGetHdmiStatus: AppStartReceiver.educationService is null !");
+        if (IpcManager.INSTANCE.getService(EducationService.class) == null){
+            Log.d(TAG, "syncGetHdmiStatus: IpcManager.INSTANCE.getService(EducationService.class) is null !");
             return;
         }
         JSONObject jsonObject = new JSONObject();
-        jsonObject.put("hdmiStatus", AppStartReceiver.educationService.getHdmiStatus());
+        jsonObject.put("hdmiStatus", IpcManager.INSTANCE.getService(EducationService.class).getHdmiStatus());
         uniJSCallback.invoke(jsonObject);
     }
 
     @UniJSMethod(uiThread = true)
     @Override
     public void hornControlSwitch(boolean isOpen) {
-        if (!AppStartReceiver.isConnect){
+        if (!Singleton.getSingleton().isConnect()){
             showToast();
             return ;
         }
         Log.d(TAG, "hornControlSwitch: " + isOpen);
-        if (AppStartReceiver.educationService == null){
-            Log.d(TAG, "hornControlSwitch: AppStartReceiver.educationService is null  !");
+        if (IpcManager.INSTANCE.getService(EducationService.class) == null){
+            Log.d(TAG, "hornControlSwitch: IpcManager.INSTANCE.getService(EducationService.class) is null  !");
             return;
         }
-        AppStartReceiver.educationService.setHornControlSwitch(isOpen);
+        IpcManager.INSTANCE.getService(EducationService.class).setHornControlSwitch(isOpen);
     }
 
     /***********************************广播相关***********************************************/
@@ -1653,31 +1630,31 @@ public class FloatUniModule extends UniModule implements SettingProviderInterfac
     @UniJSMethod(uiThread = true)
     @Override
     public void initBroadcast() {
-        if (!AppStartReceiver.isConnect){
+        if (!Singleton.getSingleton().isConnect()){
             showToast();
             return ;
         }
         Log.d(TAG, "initBroadcast: ");
-        if (AppStartReceiver.broadcastService == null){
-            Log.d(TAG, "initBroadcast: AppStartReceiver.broadcastService is null !");
+        if (IpcManager.INSTANCE.getService(IBroadcastService.class) == null){
+            Log.d(TAG, "initBroadcast: IpcManager.INSTANCE.getService(IBroadcastService.class) is null !");
             return;
         }
-        AppStartReceiver.broadcastService.initSpeakBroadcast();
+        IpcManager.INSTANCE.getService(IBroadcastService.class).initSpeakBroadcast();
     }
 
     @UniJSMethod(uiThread = true)
     @Override
     public void setOnIONotifyListener(UniJSCallback uniJSCallback) {
-        if (!AppStartReceiver.isConnect){
+        if (!Singleton.getSingleton().isConnect()){
             showToast();
             return ;
         }
         Log.d(TAG, "setOnIONotifyListener: ");
-        if (AppStartReceiver.broadcastService == null){
-            Log.d(TAG, "setOnIONotifyListener: AppStartReceiver.broadcastService is null !");
+        if (IpcManager.INSTANCE.getService(IBroadcastService.class) == null){
+            Log.d(TAG, "setOnIONotifyListener: IpcManager.INSTANCE.getService(IBroadcastService.class) is null !");
             return;
         }
-        AppStartReceiver.broadcastService.onIONotifyListener(new Result<Integer>() {
+        IpcManager.INSTANCE.getService(IBroadcastService.class).onIONotifyListener(new Result<Integer>() {
             @Override
             public void onData(Integer data) {
                 Log.d(TAG, "onData: " + data);
@@ -1691,16 +1668,16 @@ public class FloatUniModule extends UniModule implements SettingProviderInterfac
     @UniJSMethod(uiThread = true)
     @Override
     public void setOnSpeakBroadcastListener(UniJSCallback uniJSCallback) {
-        if (!AppStartReceiver.isConnect){
+        if (!Singleton.getSingleton().isConnect()){
             showToast();
             return ;
         }
         Log.d(TAG, "setOnSpeakBroadcastListener: ");
-        if (AppStartReceiver.broadcastService == null){
-            Log.d(TAG, "setOnSpeakBroadcastListener: AppStartReceiver.broadcastService is null !");
+        if (IpcManager.INSTANCE.getService(IBroadcastService.class) == null){
+            Log.d(TAG, "setOnSpeakBroadcastListener: IpcManager.INSTANCE.getService(IBroadcastService.class) is null !");
             return;
         }
-        AppStartReceiver.broadcastService.onSpeakBroadcastListener(new Result<SpeakBroadcastState>() {
+        IpcManager.INSTANCE.getService(IBroadcastService.class).onSpeakBroadcastListener(new Result<SpeakBroadcastState>() {
             @Override
             public void onData(SpeakBroadcastState data) {
                 Log.d(TAG, "onData: " + data);
@@ -1715,16 +1692,16 @@ public class FloatUniModule extends UniModule implements SettingProviderInterfac
     @UniJSMethod(uiThread = true)
     @Override
     public void setOnToastListener(UniJSCallback uniJSCallback) {
-        if (!AppStartReceiver.isConnect){
+        if (!Singleton.getSingleton().isConnect()){
             showToast();
             return ;
         }
         Log.d(TAG, "setOnToastListener: ");
-        if (AppStartReceiver.broadcastService == null){
-            Log.d(TAG, "setOnToastListener: AppStartReceiver.broadcastService is null !");
+        if (IpcManager.INSTANCE.getService(IBroadcastService.class) == null){
+            Log.d(TAG, "setOnToastListener: IpcManager.INSTANCE.getService(IBroadcastService.class) is null !");
             return;
         }
-        AppStartReceiver.broadcastService.onToastListener(new Result<String>() {
+        IpcManager.INSTANCE.getService(IBroadcastService.class).onToastListener(new Result<String>() {
             @Override
             public void onData(String s) {
                 Log.d(TAG, "onToastListener" + s);
@@ -1738,13 +1715,13 @@ public class FloatUniModule extends UniModule implements SettingProviderInterfac
     @UniJSMethod(uiThread = true)
     @Override
     public void addBroadcastObj(int num, UniJSCallback uniJSCallback) {
-        if (!AppStartReceiver.isConnect){
+        if (!Singleton.getSingleton().isConnect()){
             showToast();
             return ;
         }
         Log.d(TAG, "addBroadcastObj: ");
-        if (AppStartReceiver.broadcastService == null){
-            Log.d(TAG, "addBroadcastObj: AppStartReceiver.broadcastService is null !");
+        if (IpcManager.INSTANCE.getService(IBroadcastService.class) == null){
+            Log.d(TAG, "addBroadcastObj: IpcManager.INSTANCE.getService(IBroadcastService.class) is null !");
             return;
         }
 
@@ -1755,91 +1732,91 @@ public class FloatUniModule extends UniModule implements SettingProviderInterfac
         AreaDivision areaDivision = new AreaDivision();
         areaDivision.setDisplayNum(num);
         areaDivision.setMasterNum(num / 1000);
-        if (!AppStartReceiver.areaDivisionArrayList.contains(areaDivision)) {
-            AppStartReceiver.areaDivisionArrayList.add(areaDivision);
+        if (!Singleton.getSingleton().getAreaDivisionArrayList().contains(areaDivision)) {
+            Singleton.getSingleton().getAreaDivisionArrayList().add(areaDivision);
         }
 
         JSONObject jsonObject = new JSONObject();
-        jsonObject.put("broadcastDevices", new Gson().toJson(AppStartReceiver.areaDivisionArrayList));
+        jsonObject.put("broadcastDevices", new Gson().toJson(Singleton.getSingleton().getAreaDivisionArrayList()));
         uniJSCallback.invoke(jsonObject);
     }
 
     @UniJSMethod(uiThread = true)
     @Override
     public void clearBroadcastObj() {
-        if (!AppStartReceiver.isConnect){
+        if (!Singleton.getSingleton().isConnect()){
             showToast();
             return ;
         }
         Log.d(TAG, "addBroadcastObj: ");
-        if (AppStartReceiver.broadcastService == null){
-            Log.d(TAG, "addBroadcastObj: AppStartReceiver.broadcastService is null !");
+        if (IpcManager.INSTANCE.getService(IBroadcastService.class) == null){
+            Log.d(TAG, "addBroadcastObj: IpcManager.INSTANCE.getService(IBroadcastService.class) is null !");
             return;
         }
-        AppStartReceiver.areaDivisionArrayList.clear();
+        Singleton.getSingleton().getAreaDivisionArrayList().clear();
     }
 
     @UniJSMethod(uiThread = true)
     @Override
     public void setSpeakBroadcastDevice() {
-        if (!AppStartReceiver.isConnect){
+        if (!Singleton.getSingleton().isConnect()){
             showToast();
             return ;
         }
         Log.d(TAG, "setSpeakBroadcastDevice: ");
-        if (AppStartReceiver.broadcastService == null){
-            Log.d(TAG, "setSpeakBroadcastDevice: AppStartReceiver.broadcastService is null !");
+        if (IpcManager.INSTANCE.getService(IBroadcastService.class) == null){
+            Log.d(TAG, "setSpeakBroadcastDevice: IpcManager.INSTANCE.getService(IBroadcastService.class) is null !");
             return;
         }
-        for (int i = 0; i < AppStartReceiver.areaDivisionArrayList.size(); i++) {
-            Log.d(TAG, "setSpeakBroadcastDevice: " + AppStartReceiver.areaDivisionArrayList.get(i));
+        for (int i = 0; i < Singleton.getSingleton().getAreaDivisionArrayList().size(); i++) {
+            Log.d(TAG, "setSpeakBroadcastDevice: " + Singleton.getSingleton().getAreaDivisionArrayList().get(i));
         }
-        AppStartReceiver.broadcastService.setSpeakBroadcastDevice(AppStartReceiver.areaDivisionArrayList);
+        IpcManager.INSTANCE.getService(IBroadcastService.class).setSpeakBroadcastDevice(Singleton.getSingleton().getAreaDivisionArrayList());
     }
 
     @UniJSMethod(uiThread = true)
     @Override
     public void startSpeakBroadcast(int data) {
-        if (!AppStartReceiver.isConnect){
+        if (!Singleton.getSingleton().isConnect()){
             showToast();
             return ;
         }
         Log.d(TAG, "startSpeakBroadcast: ");
-        if (AppStartReceiver.broadcastService == null){
-            Log.d(TAG, "startSpeakBroadcast: AppStartReceiver.broadcastService is null !");
+        if (IpcManager.INSTANCE.getService(IBroadcastService.class) == null){
+            Log.d(TAG, "startSpeakBroadcast: IpcManager.INSTANCE.getService(IBroadcastService.class) is null !");
             return;
         }
-        AppStartReceiver.broadcastService.startSpeakBroadcast(data);
+        IpcManager.INSTANCE.getService(IBroadcastService.class).startSpeakBroadcast(data);
     }
 
     @UniJSMethod(uiThread = true)
     @Override
     public void stopSpeakBroadcast(int data) {
-        if (!AppStartReceiver.isConnect){
+        if (!Singleton.getSingleton().isConnect()){
             showToast();
             return ;
         }
         Log.d(TAG, "stopSpeakBroadcast: ");
-        if (AppStartReceiver.broadcastService == null){
-            Log.d(TAG, "stopSpeakBroadcast: AppStartReceiver.broadcastService is null !");
+        if (IpcManager.INSTANCE.getService(IBroadcastService.class) == null){
+            Log.d(TAG, "stopSpeakBroadcast: IpcManager.INSTANCE.getService(IBroadcastService.class) is null !");
             return;
         }
-        AppStartReceiver.broadcastService.stopSpeakBroadcast(data);
+        IpcManager.INSTANCE.getService(IBroadcastService.class).stopSpeakBroadcast(data);
     }
 
     @UniJSMethod(uiThread = true)
     @Override
     public void getMasterDeviceListInfo(UniJSCallback uniJsCallback) {
-        if (!AppStartReceiver.isConnect){
+        if (!Singleton.getSingleton().isConnect()){
             showToast();
             return ;
         }
         Log.d(TAG, "getMasterDeviceListInfo: ");
-        if (AppStartReceiver.intercomService == null){
-            Log.d(TAG, "getMasterDeviceListInfo: AppStartReceiver.intercomService is null !");
+        if (IpcManager.INSTANCE.getService(IntercomService.class) == null){
+            Log.d(TAG, "getMasterDeviceListInfo: IpcManager.INSTANCE.getService(IntercomService.class) is null !");
             return;
         }
-        AppStartReceiver.intercomService.getSubMasterList(new Result<ArrayList<MasterDeviceInfo>>() {
+        IpcManager.INSTANCE.getService(IntercomService.class).getSubMasterList(new Result<ArrayList<MasterDeviceInfo>>() {
             @Override
             public void onData(ArrayList<MasterDeviceInfo> masterDeviceInfos) {
                 String gsonString = new Gson().toJson(masterDeviceInfos);
