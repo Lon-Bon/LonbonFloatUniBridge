@@ -118,16 +118,33 @@ public class FloatUniModule extends UniModule implements SettingProviderInterfac
                 @Override
                 public Unit invoke(Boolean aBoolean) {
                     if (aBoolean) {
+                        //todo:IPC连接成功不代表LonbonApp启动完成，目前暂无启动完成标志，暂时延迟发送重连成功标识
                         Singleton.getSingleton().setConnect(true);
-                        JSONObject jsonObject = new JSONObject();
-                        jsonObject.put("code", 0);
-                        if (uniJsCallback != null) {
-                            Log.i(TAG, "initIPCManager open uniJsCallback " + uniJsCallback);
-                            uniJsCallback.invokeAndKeepAlive(jsonObject);
-                        } else {
-                            Log.i(TAG, "initIPCManager ipcStateUniJSCallback null 1");
-                        }
-                        Log.d(TAG, "initIPCManager:linkIpc: 服务链接成功！");
+                        Log.i(TAG, "initIPCManager currentThread" + Thread.currentThread());
+                        new Thread(new Runnable() {
+                            @Override
+                            public void run() {
+                                try {
+                                    Thread.sleep(8000);
+                                    mUniSDKInstance.runOnUiThread(new Runnable() {
+                                        @Override
+                                        public void run() {
+                                            JSONObject jsonObject = new JSONObject();
+                                            jsonObject.put("code", 0);
+                                            if (uniJsCallback != null) {
+                                                Log.i(TAG, "initIPCManager open uniJsCallback " + uniJsCallback);
+                                                uniJsCallback.invokeAndKeepAlive(jsonObject);
+                                            } else {
+                                                Log.i(TAG, "initIPCManager ipcStateUniJSCallback null 1");
+                                            }
+                                            Log.d(TAG, "initIPCManager:linkIpc: 服务链接成功！");
+                                        }
+                                    });
+                                } catch (InterruptedException e) {
+                                    e.printStackTrace();
+                                }
+                            }
+                        }).start();
                     } else {
                         Singleton.getSingleton().setConnect(false);
                         JSONObject jsonObject = new JSONObject();
