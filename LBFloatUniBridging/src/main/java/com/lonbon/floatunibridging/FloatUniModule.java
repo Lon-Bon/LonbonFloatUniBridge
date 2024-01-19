@@ -119,13 +119,13 @@ public class FloatUniModule extends UniModule implements SettingProviderInterfac
                 public Unit invoke(Boolean aBoolean) {
                     if (aBoolean) {
                         //todo:IPC连接成功不代表LonbonApp启动完成，目前暂无启动完成标志，暂时延迟发送重连成功标识
-                        Singleton.getSingleton().setConnect(true);
                         Log.i(TAG, "initIPCManager currentThread" + Thread.currentThread());
                         new Thread(new Runnable() {
                             @Override
                             public void run() {
                                 try {
                                     Thread.sleep(8000);
+                                    Singleton.getSingleton().setConnect(true);
                                     mUniSDKInstance.runOnUiThread(new Runnable() {
                                         @Override
                                         public void run() {
