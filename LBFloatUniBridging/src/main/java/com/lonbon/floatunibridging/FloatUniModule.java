@@ -1868,7 +1868,7 @@ public class FloatUniModule extends UniModule implements SettingProviderInterfac
             showToast();
             return ;
         }
-        Log.d(TAG, "getSipUsername: ");
+        Log.d(TAG, "getSipUsername");
         if (IpcManager.INSTANCE.getService(ISipServerService.class) == null){
             Log.d(TAG, "getSipUsername: IpcManager.INSTANCE.getService(ISipServerService.class) is null !");
             return;
@@ -1884,7 +1884,7 @@ public class FloatUniModule extends UniModule implements SettingProviderInterfac
             showToast();
             return ;
         }
-        Log.d(TAG, "getSipDisplayName: ");
+        Log.d(TAG, "getSipDisplayName");
         if (IpcManager.INSTANCE.getService(ISipServerService.class) == null){
             Log.d(TAG, "getSipDisplayName: IpcManager.INSTANCE.getService(ISipServerService.class) is null !");
             return;
@@ -1900,7 +1900,7 @@ public class FloatUniModule extends UniModule implements SettingProviderInterfac
             showToast();
             return ;
         }
-        Log.d(TAG, "getSipDisplayName: ");
+        Log.d(TAG, "isSipRegisterState");
         if (IpcManager.INSTANCE.getService(ISipServerService.class) == null){
             Log.d(TAG, "getSipDisplayName: IpcManager.INSTANCE.getService(ISipServerService.class) is null !");
             return;
@@ -1917,7 +1917,7 @@ public class FloatUniModule extends UniModule implements SettingProviderInterfac
             showToast();
             return ;
         }
-        Log.d(TAG, "onSipEvent ");
+        Log.d(TAG, "onSipEvent");
         if (IpcManager.INSTANCE.getService(ISipServerService.class) == null){
             Log.d(TAG, "onSipEvent: IpcManager.INSTANCE.getService(ISipServerService.class) is null !");
             return;
