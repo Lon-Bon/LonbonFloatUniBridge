@@ -33,6 +33,8 @@ import com.lb.extend.security.intercom.LocalDeviceInfo;
 import com.lb.extend.security.intercom.MasterDeviceInfo;
 import com.lb.extend.security.intercom.TalkEvent;
 import com.lb.extend.security.setting.SystemSettingService;
+import com.lb.extend.security.sip.ISipServerService;
+import com.lb.extend.security.sip.SipEvent;
 import com.lb.extend.security.temperature.TemperatureData;
 import com.lb.extend.security.temperature.TemperatureMeasurementService;
 import com.lb.extend.service.ILonbonService;
@@ -71,7 +73,7 @@ import kotlin.jvm.functions.Function1;
  * @Create: 2022/4/6
  * @Describe:
  */
-public class FloatUniModule extends UniModule implements SettingProviderInterface,IntercomProviderInterface,EducationProviderInterface{
+public class FloatUniModule extends UniModule implements SettingProviderInterface,IntercomProviderInterface,EducationProviderInterface,SipProviderInterface{
 
     private final String TAG = "FloatUniModule";
 
@@ -1859,6 +1861,145 @@ public class FloatUniModule extends UniModule implements SettingProviderInterfac
         });
     }
 
+    @UniJSMethod(uiThread = true)
+    @Override
+    public void getSipUsername(UniJSCallback uniJSCallback) {
+        if (!Singleton.getSingleton().isConnect()){
+            showToast();
+            return ;
+        }
+        Log.d(TAG, "getSipUsername: ");
+        if (IpcManager.INSTANCE.getService(ISipServerService.class) == null){
+            Log.d(TAG, "getSipUsername: IpcManager.INSTANCE.getService(ISipServerService.class) is null !");
+            return;
+        }
+        JSONObject jsonObject = new JSONObject();
+        jsonObject.put("sipUsername", IpcManager.INSTANCE.getService(ISipServerService.class).getSipUsername());
+        uniJSCallback.invoke(jsonObject);
+    }
+    @UniJSMethod(uiThread = true)
+    @Override
+    public void getSipDisplayName(UniJSCallback uniJSCallback) {
+        if (!Singleton.getSingleton().isConnect()){
+            showToast();
+            return ;
+        }
+        Log.d(TAG, "getSipDisplayName: ");
+        if (IpcManager.INSTANCE.getService(ISipServerService.class) == null){
+            Log.d(TAG, "getSipDisplayName: IpcManager.INSTANCE.getService(ISipServerService.class) is null !");
+            return;
+        }
+        JSONObject jsonObject = new JSONObject();
+        jsonObject.put("sipDisplayName", IpcManager.INSTANCE.getService(ISipServerService.class).getSipDisplayName());
+        uniJSCallback.invoke(jsonObject);
+    }
+    @UniJSMethod(uiThread = true)
+    @Override
+    public void isSipRegisterState(UniJSCallback uniJSCallback){
+        if (!Singleton.getSingleton().isConnect()){
+            showToast();
+            return ;
+        }
+        Log.d(TAG, "getSipDisplayName: ");
+        if (IpcManager.INSTANCE.getService(ISipServerService.class) == null){
+            Log.d(TAG, "getSipDisplayName: IpcManager.INSTANCE.getService(ISipServerService.class) is null !");
+            return;
+        }
+        JSONObject jsonObject = new JSONObject();
+        jsonObject.put("sipRegisterState", IpcManager.INSTANCE.getService(ISipServerService.class).isSipRegisterState());
+        uniJSCallback.invoke(jsonObject);
+    }
+
+    @UniJSMethod(uiThread = true)
+    @Override
+    public void onSipEvent(UniJSCallback uniJSCallback) {
+        if (!Singleton.getSingleton().isConnect()){
+            showToast();
+            return ;
+        }
+        Log.d(TAG, "onSipEvent ");
+        if (IpcManager.INSTANCE.getService(ISipServerService.class) == null){
+            Log.d(TAG, "onSipEvent: IpcManager.INSTANCE.getService(ISipServerService.class) is null !");
+            return;
+        }
+        IpcManager.INSTANCE.getService(ISipServerService.class).onSipEvent(new Result<SipEvent>() {
+            @Override
+            public void onData(SipEvent sipEvent) {
+                Log.d(TAG, "SipEvent: " + sipEvent);
+                JSONObject jsonObject = new JSONObject();
+                jsonObject.put("sipEvent", new Gson().toJson(sipEvent));
+                uniJSCallback.invokeAndKeepAlive(jsonObject);
+            }
+        });
+    }
+
+    @UniJSMethod(uiThread = true)
+    @Override
+    public void sipCall(String sipNum, int dataType, UniJSCallback uniJSCallback){
+        if (!Singleton.getSingleton().isConnect()){
+            showToast();
+            return ;
+        }
+        Log.d(TAG, "sipCall: ");
+        if (IpcManager.INSTANCE.getService(ISipServerService.class) == null){
+            Log.d(TAG, "sipCall: IpcManager.INSTANCE.getService(ISipServerService.class) is null !");
+            return;
+        }
+        JSONObject jsonObject = new JSONObject();
+        jsonObject.put("tip", IpcManager.INSTANCE.getService(ISipServerService.class).sipCall(sipNum,dataType));
+        uniJSCallback.invoke(jsonObject);
+    }
+
+    @UniJSMethod(uiThread = true)
+    @Override
+    public void sipAnswer(String sipNum, int dataType, UniJSCallback uniJSCallback){
+        if (!Singleton.getSingleton().isConnect()){
+            showToast();
+            return ;
+        }
+        Log.d(TAG, "sipAnswer: ");
+        if (IpcManager.INSTANCE.getService(ISipServerService.class) == null){
+            Log.d(TAG, "sipAnswer: IpcManager.INSTANCE.getService(ISipServerService.class) is null !");
+            return;
+        }
+        JSONObject jsonObject = new JSONObject();
+        jsonObject.put("tip", IpcManager.INSTANCE.getService(ISipServerService.class).sipAnswer(sipNum,dataType));
+        uniJSCallback.invoke(jsonObject);
+    }
+
+    @UniJSMethod(uiThread = true)
+    @Override
+    public void sipHangup(String sipNum, int dataType, UniJSCallback uniJSCallback){
+        if (!Singleton.getSingleton().isConnect()){
+            showToast();
+            return ;
+        }
+        Log.d(TAG, "sipHangup: ");
+        if (IpcManager.INSTANCE.getService(ISipServerService.class) == null){
+            Log.d(TAG, "sipHangup: IpcManager.INSTANCE.getService(ISipServerService.class) is null !");
+            return;
+        }
+        JSONObject jsonObject = new JSONObject();
+        jsonObject.put("tip", IpcManager.INSTANCE.getService(ISipServerService.class).sipHangup(sipNum,dataType));
+        uniJSCallback.invoke(jsonObject);
+    }
+
+    @UniJSMethod(uiThread = true)
+    @Override
+    public void sipAudioCall(String sipNum, int dataType, UniJSCallback uniJSCallback){
+        if (!Singleton.getSingleton().isConnect()){
+            showToast();
+            return ;
+        }
+        Log.d(TAG, "sipAudioCall: ");
+        if (IpcManager.INSTANCE.getService(ISipServerService.class) == null){
+            Log.d(TAG, "sipAudioCall: IpcManager.INSTANCE.getService(ISipServerService.class) is null !");
+            return;
+        }
+        JSONObject jsonObject = new JSONObject();
+        jsonObject.put("tip", IpcManager.INSTANCE.getService(ISipServerService.class).sipAudioCall(sipNum,dataType));
+        uniJSCallback.invoke(jsonObject);
+    }
     /**********************************************************************************/
 
     private void showToast(){
