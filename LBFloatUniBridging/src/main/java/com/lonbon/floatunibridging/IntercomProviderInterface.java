@@ -243,4 +243,74 @@ public interface IntercomProviderInterface {
      */
     void deleteFile(String path,UniJSCallback uniJsCallback);
 
+
+    /**
+     * 主机控制分机通话音量
+     * @param volume - 范围 0-5
+     */
+    void setSlaveVolume(int volume);
+
+    /**
+     * 主机获取分机通话音量（同步方法）
+     * @return 0：成功，其它值失败
+     */
+    void syncGetSlaveVolume(UniJSCallback uniJSCallback);
+
+    /**
+     * 初始化喊话广播
+     */
+    void initBroadcast();
+
+    /**
+     * 设备IO事件回调
+     * @param uniJSCallback
+     */
+    void setOnIONotifyListener(UniJSCallback uniJSCallback);
+
+    /**
+     * 喊话广播相关状态回调
+     * @param uniJSCallback
+     */
+    void setOnSpeakBroadcastListener(UniJSCallback uniJSCallback);
+
+    /**
+     * 设置广播Toast提示
+     * @param uniJSCallback
+     */
+    void setOnToastListener(UniJSCallback uniJSCallback);
+
+    /**
+     * 添加喊话广播设备
+     * @param num
+     * @param uniJSCallback 回调目前设备列表
+     */
+    void addBroadcastObj(int num, UniJSCallback uniJSCallback);
+
+    /**
+     * 清空喊话广播设备
+     */
+    void clearBroadcastObj();
+
+    /**
+     * 设置喊话广播设备
+     */
+    void setSpeakBroadcastDevice();
+
+    /**
+     * 开始喊话广播
+     * @param data
+     */
+    void startSpeakBroadcast(int data);
+
+    /**
+     * 停止喊话广播
+     * @param data
+     */
+    void stopSpeakBroadcast(int data);
+
+    /**
+     * 获取下级主机描述信息
+     * @param uniJsCallback
+     */
+    void getMasterDeviceListInfo(UniJSCallback uniJsCallback);
 }

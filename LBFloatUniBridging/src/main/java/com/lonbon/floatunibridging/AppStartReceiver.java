@@ -28,10 +28,12 @@ import java.util.List;
  * 双重保险，设置 io.dcloud.PandoraEntryActivity检测
  */
 public class AppStartReceiver extends BroadcastReceiver {
+
     private String TAG = "AppStartReceiver";
+
     @Override
     public void onReceive(Context context, Intent intent) {
-        Log.d("AppStartReceiver", "onReceive: "+intent.toString());
+        Log.d("AppStartReceiver", "onReceive: "+intent.toString() + Thread.currentThread().getId());
         String packName = intent.getComponent().flattenToShortString().split("/")[0];
         Log.d("AppStartReceiver", "onReceive: "+packName);
         startActivity(context,packName);
