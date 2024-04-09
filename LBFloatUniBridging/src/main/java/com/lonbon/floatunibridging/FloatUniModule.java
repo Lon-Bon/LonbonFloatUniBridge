@@ -735,7 +735,7 @@ public class FloatUniModule extends UniModule implements SettingProviderInterfac
                 Log.i(TAG, "takePictureCallBack: "+Arrays.toString(bytes));
                 Log.i(TAG, "takePictureCallBack: "+pictureFormat);
                 JSONObject jsonObject = new JSONObject();
-                jsonObject.put("bytes", bytes);
+                jsonObject.put("bytes", Base64.encodeToString(bytes, Base64.DEFAULT));
                 jsonObject.put("pictureFormat",pictureFormat);
                 uniJsCallback.invokeAndKeepAlive(jsonObject);
             }
