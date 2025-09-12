@@ -22,6 +22,11 @@ import com.lb.extend.security.card.CardData;
 import com.lb.extend.security.card.SwingCardService;
 import com.lb.extend.security.education.EducationService;
 import com.lb.extend.security.education.EducationTaskStateBean;
+import com.lb.extend.security.face.CommonFaceResult;
+import com.lb.extend.security.face.CompareResult;
+import com.lb.extend.security.face.EnrollImgBatchResult;
+import com.lb.extend.security.face.EnrollResult;
+import com.lb.extend.security.face.FaceService;
 import com.lb.extend.security.fingerprint.FingerprintCompareResult;
 import com.lb.extend.security.fingerprint.FingerprintFeatureResult;
 import com.lb.extend.security.fingerprint.FingerprintLeftNumResult;
@@ -51,6 +56,7 @@ import java.io.File;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
+import java.util.Map;
 
 import io.dcloud.feature.uniapp.annotation.UniJSMethod;
 import io.dcloud.feature.uniapp.bridge.UniJSCallback;
@@ -73,7 +79,7 @@ import kotlin.jvm.functions.Function1;
  * @Create: 2022/4/6
  * @Describe:
  */
-public class FloatUniModule extends UniModule implements SettingProviderInterface,IntercomProviderInterface,EducationProviderInterface,SipProviderInterface{
+public class FloatUniModule extends UniModule implements SettingProviderInterface,IntercomProviderInterface,EducationProviderInterface,SipProviderInterface,FaceProviderInterface{
 
     private final String TAG = "FloatUniModule";
 
@@ -2000,6 +2006,348 @@ public class FloatUniModule extends UniModule implements SettingProviderInterfac
         jsonObject.put("tip", IpcManager.INSTANCE.getService(ISipServerService.class).sipAudioCall(sipNum,dataType));
         uniJSCallback.invoke(jsonObject);
     }
+
+    /********************************人脸相关接口*************************************/
+
+    @UniJSMethod(uiThread = true)
+    @Override
+    public void startEnroll(String code) {
+        if (!Singleton.getSingleton().isConnect()){
+            showToast();
+            return ;
+        }
+        Log.d(TAG, "startEnroll: " + code);
+        IpcManager.INSTANCE.getService(FaceService.class).startEnroll(code);
+    }
+
+    @UniJSMethod(uiThread = true)
+    @Override
+    public void closeEnroll() {
+        if (!Singleton.getSingleton().isConnect()){
+            showToast();
+            return ;
+        }
+        Log.d(TAG, "closeEnroll: ");
+        IpcManager.INSTANCE.getService(FaceService.class).closeEnroll();
+    }
+
+    @UniJSMethod(uiThread = true)
+    @Override
+    public void startCompare() {
+        if (!Singleton.getSingleton().isConnect()){
+            showToast();
+            return ;
+        }
+        Log.d(TAG, "startCompare: ");
+        IpcManager.INSTANCE.getService(FaceService.class).startCompare();
+    }
+
+    @UniJSMethod(uiThread = true)
+    @Override
+    public void closeCompare() {
+        if (!Singleton.getSingleton().isConnect()){
+            showToast();
+            return ;
+        }
+        Log.d(TAG, "closeCompare: ");
+        IpcManager.INSTANCE.getService(FaceService.class).closeCompare();
+    }
+
+    @UniJSMethod(uiThread = true)
+    @Override
+    public void enrollFaceByImg(String imgPath, String code) {
+        if (!Singleton.getSingleton().isConnect()){
+            showToast();
+            return ;
+        }
+        Log.d(TAG, "enrollFaceByImg: " + imgPath + "," + code);
+        IpcManager.INSTANCE.getService(FaceService.class).enrollFaceByImg(imgPath, code);
+    }
+
+    @UniJSMethod(uiThread = true)
+    @Override
+    public void compareFace() {
+        if (!Singleton.getSingleton().isConnect()){
+            showToast();
+            return ;
+        }
+        Log.d(TAG, "compareFace: ");
+        IpcManager.INSTANCE.getService(FaceService.class).compareFace();
+    }
+
+    @UniJSMethod(uiThread = true)
+    @Override
+    public void deleteFace(String code) {
+        if (!Singleton.getSingleton().isConnect()){
+            showToast();
+            return ;
+        }
+        Log.d(TAG, "deleteFace: ");
+        IpcManager.INSTANCE.getService(FaceService.class).deleteFace(code);
+    }
+
+    @UniJSMethod(uiThread = true)
+    @Override
+    public void configureScanRectF(Float leftPercent, Float topPercent, Float widthPercent, Float heightPercent) {
+        if (!Singleton.getSingleton().isConnect()){
+            showToast();
+            return ;
+        }
+        Log.d(TAG, "configureScanRectF: " + leftPercent + "," + topPercent + "," + widthPercent + "," + heightPercent);
+        IpcManager.INSTANCE.getService(FaceService.class).configureScanRectF(leftPercent, topPercent, widthPercent, heightPercent);
+    }
+
+    @UniJSMethod(uiThread = true)
+    @Override
+    public void startCompareWithParams(boolean openPreview) {
+        if (!Singleton.getSingleton().isConnect()){
+            showToast();
+            return ;
+        }
+        Log.d(TAG, "startCompareWithParams: " + openPreview);
+        IpcManager.INSTANCE.getService(FaceService.class).startCompareWithParams(openPreview);
+    }
+
+    @UniJSMethod(uiThread = true)
+    @Override
+    public void configFacePreview(int left, int top, int width, int height, boolean hideBoolean) {
+        if (!Singleton.getSingleton().isConnect()){
+            showToast();
+            return ;
+        }
+        Log.d(TAG, "configFacePreview: " + left + "," + top + "," + width + "," + height + "," + hideBoolean);
+        IpcManager.INSTANCE.getService(FaceService.class).configFacePreview(left, top, width, height, hideBoolean);
+    }
+
+    @UniJSMethod(uiThread = true)
+    @Override
+    public void getFaceCodesList() {
+        if (!Singleton.getSingleton().isConnect()){
+            showToast();
+            return ;
+        }
+        Log.d(TAG, "getFaceCodesList: ");
+        IpcManager.INSTANCE.getService(FaceService.class).getFaceCodesList();
+    }
+
+    @UniJSMethod(uiThread = true)
+    @Override
+    public void enrollFaceByImgBatch(Map<String, String> enrollMap) {
+        if (!Singleton.getSingleton().isConnect()){
+            showToast();
+            return ;
+        }
+        Log.d(TAG, "enrollFaceByImgBatch: " + enrollMap);
+        IpcManager.INSTANCE.getService(FaceService.class).enrollFaceByImgBatch(enrollMap);
+    }
+
+    @UniJSMethod(uiThread = true)
+    @Override
+    public void switchFaceLive(int open) {
+        if (!Singleton.getSingleton().isConnect()){
+            showToast();
+            return ;
+        }
+        Log.d(TAG, "switchFaceLive: " + open);
+        IpcManager.INSTANCE.getService(FaceService.class).switchFaceLive(open);
+    }
+
+    @UniJSMethod(uiThread = true)
+    @Override
+    public void faceVerifyByImg(String imgPath) {
+        if (!Singleton.getSingleton().isConnect()){
+            showToast();
+            return ;
+        }
+        Log.d(TAG, "faceVerifyByImg: " + imgPath);
+        IpcManager.INSTANCE.getService(FaceService.class).faceVerifyByImg(imgPath);
+    }
+
+    @UniJSMethod(uiThread = true)
+    @Override
+    public void setOnStartCompare(UniJSCallback uniJSCallback) {
+        if (!Singleton.getSingleton().isConnect()){
+            showToast();
+            return ;
+        }
+        Log.d(TAG, "setOnStartCompare: ");
+
+        IpcManager.INSTANCE.getService(FaceService.class).onStartCompare(new Result<Integer>() {
+            @Override
+            public void onData(Integer status) {
+                JSONObject jsonObject = new JSONObject();
+                jsonObject.put("status", status);
+                Log.d(TAG, "onStartCompare: " + jsonObject);
+                uniJSCallback.invokeAndKeepAlive(jsonObject);
+            }
+        });
+    }
+
+    @UniJSMethod(uiThread = true)
+    @Override
+    public void setOnCloseCompare(UniJSCallback uniJSCallback) {
+        if (!Singleton.getSingleton().isConnect()){
+            showToast();
+            return ;
+        }
+        Log.d(TAG, "setOnCloseCompare: ");
+
+        IpcManager.INSTANCE.getService(FaceService.class).onCloseCompare(new Result<Integer>() {
+            @Override
+            public void onData(Integer status) {
+                JSONObject jsonObject = new JSONObject();
+                jsonObject.put("status", status);
+                Log.d(TAG, "onCloseCompare: " + jsonObject);
+                uniJSCallback.invokeAndKeepAlive(jsonObject);
+            }
+        });
+    }
+
+    @UniJSMethod(uiThread = true)
+    @Override
+    public void setOnFaceCompare(UniJSCallback uniJSCallback) {
+        if (!Singleton.getSingleton().isConnect()){
+            showToast();
+            return ;
+        }
+        Log.d(TAG, "setOnFaceCompare: ");
+
+        IpcManager.INSTANCE.getService(FaceService.class).onFaceCompare(new Result<CompareResult>() {
+            @Override
+            public void onData(CompareResult data) {
+                JSONObject jsonObject = new JSONObject();
+                jsonObject.put("msgCode", data.getCode());
+                jsonObject.put("verifyState ", data.getVerifyState());
+                jsonObject.put("jpegByte", Base64.encodeToString(data.getJpegByte(), Base64.DEFAULT));
+                Log.d(TAG, "onFaceCompare: " + jsonObject);
+                uniJSCallback.invokeAndKeepAlive(jsonObject);
+            }
+        });
+    }
+
+    @UniJSMethod(uiThread = true)
+    @Override
+    public void setOnFaceEnrollByCamera(UniJSCallback uniJSCallback) {
+        if (!Singleton.getSingleton().isConnect()){
+            showToast();
+            return ;
+        }
+        Log.d(TAG, "setOnFaceEnrollByCamera: ");
+
+        IpcManager.INSTANCE.getService(FaceService.class).onFaceEnrollByCamera(new Result<EnrollResult>() {
+            @Override
+            public void onData(EnrollResult data) {
+                JSONObject jsonObject = new JSONObject();
+                jsonObject.put("msgCode", data.getMsgCode());
+                Log.d(TAG, "onFaceEnrollByCamera: " + jsonObject);
+                uniJSCallback.invokeAndKeepAlive(jsonObject);
+            }
+        });
+    }
+
+    @UniJSMethod(uiThread = true)
+    @Override
+    public void setOnFaceEnrollByImg(UniJSCallback uniJSCallback) {
+        if (!Singleton.getSingleton().isConnect()){
+            showToast();
+            return ;
+        }
+        Log.d(TAG, "setOnFaceEnrollByImg: ");
+
+        IpcManager.INSTANCE.getService(FaceService.class).onFaceEnrollByImg(new Result<CommonFaceResult>() {
+            @Override
+            public void onData(CommonFaceResult data) {
+                JSONObject jsonObject = new JSONObject();
+                jsonObject.put("msgCode", data.getMsgCode());
+                jsonObject.put("code", data.getCode());
+                Log.d(TAG, "onFaceEnrollByImg: " + jsonObject);
+                uniJSCallback.invokeAndKeepAlive(jsonObject);
+            }
+        });
+    }
+
+    @UniJSMethod(uiThread = true)
+    @Override
+    public void setOnFaceDelete(UniJSCallback uniJSCallback) {
+        if (!Singleton.getSingleton().isConnect()){
+            showToast();
+            return ;
+        }
+        Log.d(TAG, "setOnFaceDelete: ");
+
+        IpcManager.INSTANCE.getService(FaceService.class).onFaceDelete(new Result<CommonFaceResult>() {
+            @Override
+            public void onData(CommonFaceResult data) {
+                JSONObject jsonObject = new JSONObject();
+                jsonObject.put("msgCode", data.getMsgCode());
+                Log.d(TAG, "onFaceDelete: " + jsonObject);
+                uniJSCallback.invokeAndKeepAlive(jsonObject);
+            }
+        });
+    }
+
+    @UniJSMethod(uiThread = true)
+    @Override
+    public void setOnGetFaceCodesListCallBack(UniJSCallback uniJSCallback) {
+        if (!Singleton.getSingleton().isConnect()){
+            showToast();
+            return ;
+        }
+        Log.d(TAG, "setOnGetFaceCodesListCallBack: ");
+
+        IpcManager.INSTANCE.getService(FaceService.class).onGetFaceCodesListCallBack(new Result<List<String>>() {
+            @Override
+            public void onData(List<String> data) {
+                JSONObject jsonObject = new JSONObject();
+                jsonObject.put("data", data.toString());
+                Log.d(TAG, "onGetFaceCodesListCallBack: " + jsonObject);
+                uniJSCallback.invokeAndKeepAlive(jsonObject);
+            }
+        });
+    }
+
+    @UniJSMethod(uiThread = true)
+    @Override
+    public void setOnFaceEnrollByImgBatch(UniJSCallback uniJSCallback) {
+        if (!Singleton.getSingleton().isConnect()){
+            showToast();
+            return ;
+        }
+        Log.d(TAG, "setOnFaceEnrollByImgBatch: ");
+
+        IpcManager.INSTANCE.getService(FaceService.class).onFaceEnrollByImgBatch(new Result<EnrollImgBatchResult>() {
+            @Override
+            public void onData(EnrollImgBatchResult data) {
+                JSONObject jsonObject = new JSONObject();
+                jsonObject.put("msgCode", data.getMsgCode());
+                jsonObject.put("successCodes", data.getSuccessCodes());
+                Log.d(TAG, "onFaceEnrollByImgBatch: " + jsonObject);
+                uniJSCallback.invokeAndKeepAlive(jsonObject);
+            }
+        });
+    }
+
+    @UniJSMethod(uiThread = true)
+    @Override
+    public void setOnFaceVerifyByImg(UniJSCallback uniJSCallback) {
+        if (!Singleton.getSingleton().isConnect()){
+            showToast();
+            return ;
+        }
+        Log.d(TAG, "setOnFaceVerifyByImg: ");
+
+        IpcManager.INSTANCE.getService(FaceService.class).onFaceVerifyByImg(new Result<CommonFaceResult>() {
+            @Override
+            public void onData(CommonFaceResult data) {
+                JSONObject jsonObject = new JSONObject();
+                jsonObject.put("msgCode", data.getMsgCode());
+                jsonObject.put("code", data.getCode());
+                Log.d(TAG, "onFaceVerifyByImg: " + jsonObject);
+                uniJSCallback.invokeAndKeepAlive(jsonObject);
+            }
+        });
+    }
+
     /**********************************************************************************/
 
     private void showToast(){
