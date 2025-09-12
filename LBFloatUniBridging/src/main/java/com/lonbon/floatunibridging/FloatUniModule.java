@@ -2217,7 +2217,7 @@ public class FloatUniModule extends UniModule implements SettingProviderInterfac
             public void onData(CompareResult data) {
                 JSONObject jsonObject = new JSONObject();
                 jsonObject.put("msgCode", data.getCode());
-                jsonObject.put("verifyState ", data.getVerifyState());
+                jsonObject.put("verifyState", data.getVerifyState());
                 jsonObject.put("jpegByte", Base64.encodeToString(data.getJpegByte(), Base64.DEFAULT));
                 Log.d(TAG, "onFaceCompare: " + jsonObject);
                 uniJSCallback.invokeAndKeepAlive(jsonObject);
