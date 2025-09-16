@@ -98,57 +98,55 @@ public interface FaceProviderInterface {
     //回调相关
 
     /**
-     * 刷卡回调
-     * @param uniJSCallback callBack - 根据返回的CallbackData的code来判断是否成功（0成功，其他值都是失败），
-     *                      如果成功，则通过CallbackData的data获取CardData，CardData的cardNum是卡号；
-     *                      如果失败，则通过CallbackData的code来判断失败类型，CallbackData的msg会写明失败原因
+     * 开启人脸识别页面回调，页面开启成功后可以调用compareFace进行识别
+     * @param uniJSCallback
      */
     void setOnStartCompare(UniJSCallback uniJSCallback);
 
     /**
-     * 刷卡回调
+     * 关闭人脸识别回调
      * @param uniJSCallback
      */
     void setOnCloseCompare(UniJSCallback uniJSCallback);
 
     /**
-     * 刷卡回调
+     * 识别一次回调
      * @param uniJSCallback
      */
     void setOnFaceCompare(UniJSCallback uniJSCallback);
 
     /**
-     * 刷卡回调
+     * 人脸录入页面结果回调
      * @param uniJSCallback
      */
     void setOnFaceEnrollByCamera(UniJSCallback uniJSCallback);
 
     /**
-     * 刷卡回调
+     * 图片录入结果回调
      * @param uniJSCallback
      */
     void setOnFaceEnrollByImg(UniJSCallback uniJSCallback);
 
     /**
-     * 刷卡回调
+     * 删除人脸回调
      * @param uniJSCallback
      */
     void setOnFaceDelete(UniJSCallback uniJSCallback);
 
     /**
-     * 刷卡回调
+     * 获取已录入人脸列表回调
      * @param uniJSCallback
      */
     void setOnGetFaceCodesListCallBack(UniJSCallback uniJSCallback);
 
     /**
-     * 刷卡回调
+     * 批量录入人脸图片回调
      * @param uniJSCallback
      */
     void setOnFaceEnrollByImgBatch(UniJSCallback uniJSCallback);
 
     /**
-     * 刷卡回调
+     * 图片识别结果回调
      * @param uniJSCallback
      */
     void setOnFaceVerifyByImg(UniJSCallback uniJSCallback);
