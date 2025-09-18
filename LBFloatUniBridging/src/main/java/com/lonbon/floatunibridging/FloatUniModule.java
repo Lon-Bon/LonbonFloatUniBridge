@@ -2239,6 +2239,7 @@ public class FloatUniModule extends UniModule implements SettingProviderInterfac
             public void onData(EnrollResult data) {
                 JSONObject jsonObject = new JSONObject();
                 jsonObject.put("msgCode", data.getMsgCode());
+                jsonObject.put("jpegByte", Base64.encodeToString(data.getJpegByte(), Base64.DEFAULT));
                 Log.d(TAG, "onFaceEnrollByCamera: " + jsonObject);
                 uniJSCallback.invokeAndKeepAlive(jsonObject);
             }
