@@ -19,6 +19,7 @@ import com.lb.extend.security.broadcast.AreaDivision;
 import com.lb.extend.security.broadcast.IBroadcastService;
 import com.lb.extend.security.broadcast.SpeakBroadcastState;
 import com.lb.extend.security.card.CardData;
+import com.lb.extend.security.card.QHCardInfo;
 import com.lb.extend.security.card.SwingCardService;
 import com.lb.extend.security.education.EducationService;
 import com.lb.extend.security.education.EducationTaskStateBean;
@@ -1010,6 +1011,34 @@ public class FloatUniModule extends UniModule implements SettingProviderInterfac
                 jsonObject.put("code",String.valueOf(cardDataCallbackData.getCode()));
                 jsonObject.put("msg",cardDataCallbackData.getMsg());
                 jsonObject.put("cardNum",cardDataCallbackData.getData().getCardNum());
+                uniJSCallback.invokeAndKeepAlive(jsonObject);
+            }
+        });
+    }
+
+    /**
+     * 清华国密卡刷卡回调
+     * @param uniJSCallback
+     */
+    @UniJSMethod(uiThread = true)
+    @Override
+    public void setQHCardDataCallBack(UniJSCallback uniJSCallback){
+        if (!Singleton.getSingleton().isConnect()){
+            showToast();
+            return ;
+        }
+        Log.d(TAG, "setQHCardDataCallBack: ");
+        if (IpcManager.INSTANCE.getService(SwingCardService.class) == null){
+            Log.d(TAG, "setQHCardDataCallBack: IpcManager.INSTANCE.getService(SwingCardService.class) is null !");
+            return;
+        }
+        IpcManager.INSTANCE.getService(SwingCardService.class).setQHCardDataCallBack(new Result<CallbackData<QHCardInfo>>() {
+            @Override
+            public void onData(CallbackData<QHCardInfo> cardDataCallbackData) {
+                JSONObject jsonObject = new JSONObject();
+                jsonObject.put("code",String.valueOf(cardDataCallbackData.getCode()));
+                jsonObject.put("msg",cardDataCallbackData.getMsg());
+                jsonObject.put("qhcard",cardDataCallbackData.getData());
                 uniJSCallback.invokeAndKeepAlive(jsonObject);
             }
         });
