@@ -43,7 +43,7 @@ public interface SettingProviderInterface {
      *                      如果成功，则通过CallbackData的data获取CardData；
      *                      如果失败，则通过CallbackData的code来判断失败类型，CallbackData的msg会写明失败原因
      */
-    void setQHCardDataCallBack(UniJSCallback uniJSCallback);
+    void setMyQhCardDataCallBack(UniJSCallback uniJSCallback);
 
     /***************************************************************************/
 

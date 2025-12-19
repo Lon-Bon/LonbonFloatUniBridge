@@ -1022,14 +1022,14 @@ public class FloatUniModule extends UniModule implements SettingProviderInterfac
      */
     @UniJSMethod(uiThread = true)
     @Override
-    public void setQHCardDataCallBack(UniJSCallback uniJSCallback){
+    public void setMyQhCardDataCallBack(UniJSCallback uniJSCallback){
         if (!Singleton.getSingleton().isConnect()){
             showToast();
             return ;
         }
-        Log.d(TAG, "setQHCardDataCallBack: ");
+        Log.d(TAG, "setMyQhCardDataCallBack: ");
         if (IpcManager.INSTANCE.getService(SwingCardService.class) == null){
-            Log.d(TAG, "setQHCardDataCallBack: IpcManager.INSTANCE.getService(SwingCardService.class) is null !");
+            Log.d(TAG, "setMyQhCardDataCallBack: IpcManager.INSTANCE.getService(SwingCardService.class) is null !");
             return;
         }
         IpcManager.INSTANCE.getService(SwingCardService.class).setQHCardDataCallBack(new Result<CallbackData<QHCardInfo>>() {
