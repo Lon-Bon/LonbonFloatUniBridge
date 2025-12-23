@@ -72,8 +72,8 @@ public class AppStartReceiver extends BroadcastReceiver {
             Process process = Runtime.getRuntime().exec("su");
             DataOutputStream os = new DataOutputStream(process.getOutputStream());
 
-            // 执行目标命令
-            os.writeBytes("am start -n " + packageName + "\n");
+            // 执行目标命令 am start -n uni.UNIDEDBC21/io.dcloud.PandoraEntryActivity
+            os.writeBytes("am start -n " + packageName + "/io.dcloud.PandoraEntryActivity\n");
             os.flush();
 
             // 退出shell
