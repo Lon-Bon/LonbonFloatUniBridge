@@ -9,6 +9,10 @@ import android.content.pm.PackageManager;
 import android.text.TextUtils;
 import android.util.Log;
 
+import java.io.BufferedReader;
+import java.io.DataOutputStream;
+import java.io.IOException;
+import java.io.InputStreamReader;
 import java.util.List;
 
 /**
@@ -36,7 +40,7 @@ public class AppStartReceiver extends BroadcastReceiver {
         Log.d("AppStartReceiver", "onReceive: "+intent.toString() + Thread.currentThread().getId());
         String packName = intent.getComponent().flattenToShortString().split("/")[0];
         Log.d("AppStartReceiver", "onReceive: "+packName);
-        startActivity(context,packName);
+        startAppWithRoot(context, packName);
 
     }
 
@@ -59,6 +63,55 @@ public class AppStartReceiver extends BroadcastReceiver {
         }
 
     }
+
+    /**
+     * 使用root权限直接命令启动app，绕过安卓10以上自启限制
+     */
+    private void startAppWithRoot(Context context, String packageName) {
+        if (isRunningApp(context,packageName)){
+            Log.d(TAG, "startAppWithRoot: app is running "+packageName);
+            return;
+        }
+        try {
+            Process process = Runtime.getRuntime().exec("su");
+            DataOutputStream os = new DataOutputStream(process.getOutputStream());
+
+            // 执行目标命令 am start -n uni.UNIDEDBC21/io.dcloud.PandoraEntryActivity
+            os.writeBytes("am start -n " + packageName + "/io.dcloud.PandoraEntryActivity\n");
+            os.flush();
+
+            // 退出shell
+            os.writeBytes("exit\n");
+            os.flush();
+
+            // 读取输出流（可选）
+            BufferedReader reader = new BufferedReader(
+                    new InputStreamReader(process.getInputStream())
+            );
+            String line;
+            while ((line = reader.readLine()) != null) {
+                Log.d("Command Output", line);
+            }
+
+            // 读取错误流（重要！避免阻塞）
+            BufferedReader errorReader = new BufferedReader(
+                    new InputStreamReader(process.getErrorStream())
+            );
+            String errorLine;
+            while ((errorLine = errorReader.readLine()) != null) {
+                Log.e("Command Error", errorLine);
+            }
+
+            process.waitFor();
+
+        } catch (IOException e) {
+            Log.e("Command", "IO异常: " + e.getMessage());
+        } catch (InterruptedException e) {
+            Log.e("Command", "进程中断: " + e.getMessage());
+            Thread.currentThread().interrupt(); // 恢复中断状态
+        }
+    }
+
     private boolean isRunningApp(Context context,String packageName){
         return (isRunningAppProcesses(context,packageName) || isForeground(context,"io.dcloud.PandoraEntryActivity"));
     }
