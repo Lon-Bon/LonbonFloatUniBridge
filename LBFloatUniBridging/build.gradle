@@ -52,5 +52,5 @@ dependencies {
 
 //    implementation "com.github.Lon-Bon:lb-extend-service:develop-SNAPSHOT"
 //    implementation 'com.github.Lon-Bon:lb-extend-service:09b631d7d3'
-    implementation("com.github.Lon-Bon:lb-extend-service:202512191413")
+    implementation("com.github.Lon-Bon:lb-extend-service:202601051024")
 }

@@ -2183,6 +2183,17 @@ public class FloatUniModule extends UniModule implements SettingProviderInterfac
 
     @UniJSMethod(uiThread = true)
     @Override
+    public void switchFaceVerifyHint(int open) {
+        if (!Singleton.getSingleton().isConnect()){
+            showToast();
+            return ;
+        }
+        Log.d(TAG, "switchFaceVerifyHint: " + open);
+        IpcManager.INSTANCE.getService(FaceService.class).switchFaceVerifyHint(open);
+    }
+
+    @UniJSMethod(uiThread = true)
+    @Override
     public void faceVerifyByImg(String imgPath) {
         if (!Singleton.getSingleton().isConnect()){
             showToast();

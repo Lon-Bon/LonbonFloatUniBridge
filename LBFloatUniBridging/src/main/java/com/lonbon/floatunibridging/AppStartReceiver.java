@@ -40,7 +40,7 @@ public class AppStartReceiver extends BroadcastReceiver {
         Log.d("AppStartReceiver", "onReceive: "+intent.toString() + Thread.currentThread().getId());
         String packName = intent.getComponent().flattenToShortString().split("/")[0];
         Log.d("AppStartReceiver", "onReceive: "+packName);
-        startAppWithRoot(packName);
+        startAppWithRoot(context, packName);
 
     }
 
@@ -67,7 +67,11 @@ public class AppStartReceiver extends BroadcastReceiver {
     /**
      * 使用root权限直接命令启动app，绕过安卓10以上自启限制
      */
-    private void startAppWithRoot(String packageName) {
+    private void startAppWithRoot(Context context, String packageName) {
+        if (isRunningApp(context,packageName)){
+            Log.d(TAG, "startAppWithRoot: app is running "+packageName);
+            return;
+        }
         try {
             Process process = Runtime.getRuntime().exec("su");
             DataOutputStream os = new DataOutputStream(process.getOutputStream());

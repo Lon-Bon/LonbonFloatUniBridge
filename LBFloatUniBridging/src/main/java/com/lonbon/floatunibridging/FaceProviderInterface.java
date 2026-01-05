@@ -91,6 +91,11 @@ public interface FaceProviderInterface {
     void switchFaceLive(int open);
 
     /**
+     * 开关人脸识别提示词
+     */
+    void switchFaceVerifyHint(int open);
+
+    /**
      * 通过图片识别人脸
      */
     void faceVerifyByImg(String imgPath);
